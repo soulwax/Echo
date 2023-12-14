@@ -107,5 +107,3 @@ dist
 
 # TernJS port file
 .tern-port
-
-docker-compose.yml
