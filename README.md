@@ -19,14 +19,19 @@ Echo is a self-hosted, no-nonsense Discord music bot that offers a streamlined a
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/soulwax/Echo.git
    ```
+
 2. Navigate to the project directory:
+
    ```bash
    cd Echo
    ```
+
 3. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -39,10 +44,13 @@ Echo is a self-hosted, no-nonsense Discord music bot that offers a streamlined a
 ### Running the Bot
 
 - To run the bot directly:
+
   ```bash
   npm start
   ```
+
 - To run using Docker:
+
   ```bash
   docker-compose up
   ```
