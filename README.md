@@ -1,8 +1,16 @@
 <p align="center">
-  <img src="https://images-ext-1.discordapp.net/external/9fBpStwTU0ikNqtsmlZv_BB8PLnv9bOe28vnfmYGuH0/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/1165196820117458954/672d50c24ec7998d00e03ee25ec1f93f.webp?format=webp&width=747&height=747" alt="Echo Bot" width="400"/>
-</p>
-
-# Echo
+    <img src="https://images-ext-1.discordapp.net/external/9fBpStwTU0ikNqtsmlZv_BB8PLnv9bOe28vnfmYGuH0/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/1165196820117458954/672d50c24ec7998d00e03ee25ec1f93f.webp?format=webp&width=747&height=747" alt="Echo Bot" width="400"/>
+      <h3 align="center">ECHO</h3>
+    <br />
+     <p align="center">
+      <a href="https://github.com/soulwax/ECHO/issues">Report Bug</a>
+        <br />
+      <a href="https://github.com/soulwax/ECHO/issues">Request Feature</a>
+      <br />
+      Made with ❤️ by <a href="https://github.com/soulwax">soul</a>
+      </p>
+  </p>
+   
 
 Echo is a self-hosted no bs discord bot for music playback. It supports youtube and spotify playback *in channel* and has a queue system. It also supports saving favorites and, if you have a **legal** download backend, you can /download embed songs from purely a query.
 
