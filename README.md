@@ -1,6 +1,10 @@
+<p align="center">
+  <img src="https://images-ext-1.discordapp.net/external/9fBpStwTU0ikNqtsmlZv_BB8PLnv9bOe28vnfmYGuH0/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/1165196820117458954/672d50c24ec7998d00e03ee25ec1f93f.webp?format=webp&width=747&height=747" alt="Echo Bot" width="200"/>
+</p>
+
 # Echo
 
-Echo is a self-hosted, no-nonsense Discord music bot that offers a streamlined and efficient user experience. Designed for Discord, it integrates seamlessly with popular music services like YouTube and Spotify, providing a rich set of features for music playback.
+Echo is a self-hosted no bs discord bot for music playback. It supports youtube and spotify playback *in channel* and has a queue system. It also supports saving favorites and, if you have a **legal** download backend, you can /download embed songs from purely a query.
 
 ## Features
 
@@ -8,6 +12,7 @@ Echo is a self-hosted, no-nonsense Discord music bot that offers a streamlined a
 - **Queue Management**: Easily manage the playback queue with commands to play, pause, skip, and stop.
 - **Favorites**: Save your favorite tracks for quick access.
 - **Advanced Controls**: Control playback with commands like seek, loop, and shuffle.
+- **Docker Support**: Easily deploy and run Echo in Docker containers for consistent and isolated environments.
 
 ## Getting Started
 
@@ -55,7 +60,9 @@ Echo is a self-hosted, no-nonsense Discord music bot that offers a streamlined a
   docker-compose up
   ```
 
-## Commands
+This will start the Echo bot in a Docker container with the specified configurations.
+
+## Commands (not all of them)
 
 Echo supports a variety of commands for music playback and bot control. Here are some key commands:
 
@@ -65,6 +72,7 @@ Echo supports a variety of commands for music playback and bot control. Here are
 - `pause`: Pause playback.
 - `resume`: Resume playback.
 - `stop`: Stop playback and clear the queue.
+- `download`: Download a song from an endpoint *you* provide at your own risk.
 
 For a full list of commands, refer to the [Commands](https://github.com/soulwax/Echo/blob/main/src/commands) directory.
 
