@@ -11,12 +11,12 @@ import registerCommandsOnGuild from '../utils/register-commands-on-guild.js'
 export async function createGuildSettings(guildId: string): Promise<Setting> {
   return prisma.setting.upsert({
     where: {
-      guildId
+      guildId,
     },
     create: {
-      guildId
+      guildId,
     },
-    update: {}
+    update: {},
   })
 }
 
@@ -37,12 +37,12 @@ export default async (guild: Guild): Promise<void> => {
       guildId: guild.id,
       commands: container
         .getAll<Command>(TYPES.Command)
-        .map((command) => command.slashCommand)
+        .map(command => command.slashCommand),
     })
   }
 
   const owner = await guild.fetchOwner()
   await owner.send(
-    "👋 Hi! Someone (probably you) just invited me to a server you own. By default, I'm usable by all guild member in all guild channels. To change this, check out bot specific permissions for your guild!"
+    "👋 Hi! Someone (probably you) just invited me to a server you own. By default, I'm usable by all guild member in all guild channels. To change this, check out bot specific permissions for your guild!",
   )
 }

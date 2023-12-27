@@ -15,4 +15,4 @@ export const TYPES = {
     YoutubeAPI: Symbol('YoutubeAPI'),
     SpotifyAPI: Symbol('SpotifyAPI'),
   },
-};
+}
