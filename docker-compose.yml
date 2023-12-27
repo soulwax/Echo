@@ -2,8 +2,8 @@ version: "3.4"
 
 services:
   muse:
-    image: codetheweb/muse:latest
-    restart: always
+    image: soulwax/echoblossom:latest
+    build: .
     volumes:
       - ./muse:/data
     environment:
@@ -12,6 +12,7 @@ services:
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - BOT_STATUS=${BOT_STATUS}
+      - CACHE_LIMIT=${CACHE_LIMIT}
       - BOT_ACTIVITY_TYPE=${BOT_ACTIVITY_TYPE}
       - BOT_ACTIVITY_URL=${BOT_ACTIVITY_URL}
       - BOT_ACTIVITY=${BOT_ACTIVITY}
@@ -20,3 +21,6 @@ services:
       - ECHOELYSIUM_STREAMING_SECRET=${ECHOELYSIUM_STREAMING_SECRET}
       - PREFER_ECHOELYSIUM=${PREFER_ECHOELYSIUM}
       - FALLBACK_YOUTUBE=${FALLBACK_YOUTUBE}
+      - DOWNLOAD_URL=${DOWNLOAD_URL}
+      - DOWNLOAD_KEY=${DOWNLOAD_KEY}
+    restart: always
