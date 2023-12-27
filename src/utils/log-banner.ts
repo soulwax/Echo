@@ -4,11 +4,9 @@ import { readPackageSync } from 'read-pkg'
 const logBanner = () => {
   console.log(
     makeLines({
-      user: 'codetheweb',
-      repository: 'muse',
+      user: 'soulwax',
+      repository: 'echo',
       version: readPackageSync().version,
-      paypalUser: 'codetheweb',
-      githubSponsor: 'codetheweb',
       madeByPrefix: 'Made with 🎶 by ',
       buildDate: process.env.BUILD_DATE
         ? new Date(process.env.BUILD_DATE)

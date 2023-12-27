@@ -36,7 +36,7 @@ export default class DownloadCommand implements Command {
     const offset = interaction.options.getInteger('offset') ?? 0
     const songQuery = query.replace(/ /g, '+')
     const url = `${this.config.DOWNLOAD_URL}${songQuery}&key=${this.config.DOWNLOAD_KEY}&offset=${offset}`
-
+    console.log(`Downloading song from ${url}`)
     await interaction.deferReply()
 
     try {
