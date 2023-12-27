@@ -26,7 +26,8 @@
     "migrations:run": "npm run prisma:with-env migrate deploy",
     "prisma:with-env": "npm run env:set-database-url prisma",
     "env:set-database-url": "tsx src/scripts/run-with-database-url.ts",
-    "release": "release-it"
+    "release": "release-it",
+    "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "devDependencies": {
     "@release-it/keep-a-changelog": "^2.3.0",
@@ -46,16 +47,14 @@
     "eslint-config-xo": "^0.39.0",
     "eslint-config-xo-typescript": "^0.44.0",
     "husky": "^4.3.8",
+    "prettier": "^3.1.1",
     "prisma": "^3.14.0",
     "release-it": "^14.11.8",
     "type-fest": "^2.12.0",
     "typescript": "^4.6.4"
   },
   "eslintConfig": {
-    "extends": [
-      "xo",
-      "xo-typescript/space"
-    ],
+    "extends": [],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
       "project": "./tsconfig.json"
@@ -63,7 +62,6 @@
     "rules": {
       "new-cap": "off",
       "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars-experimental": "error",
       "@typescript-eslint/prefer-readonly-parameter-types": "off",
       "@typescript-eslint/no-implicit-any-catch": "off"
     }
@@ -81,6 +79,7 @@
     "@prisma/client": "^4.1.1",
     "@types/libsodium-wrappers": "^0.7.9",
     "array-shuffle": "^3.0.0",
+    "axios": "^1.6.3",
     "debug": "^4.3.3",
     "delay": "^5.0.0",
     "discord-api-types": "0.32.1",
