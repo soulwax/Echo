@@ -52,31 +52,35 @@ export default class DownloadCommand implements Command {
     await interaction.deferReply()
 
     try {
-      const filePath = await this.downloadFile(url)
-      const fileAttachment = new AttachmentBuilder(filePath)
+      const filePath = await this.downloadFile(url);
+      const fileAttachment = new AttachmentBuilder(filePath);
       await interaction.editReply({
         content: 'Download completed.',
         files: [fileAttachment],
-      })
-      fs.unlinkSync(filePath) // Clean up the file after sending
+      });
+      fs.unlinkSync(filePath); // Clean up the file after sending
     } catch (error) {
-      console.error('Error occurred:', error)
-
-      // Fallback to youtube download via yt-dlp
-      try {
-        const ytFilePath = await this.downloadFromYouTube(query)
-        const ytFileAttachment = new AttachmentBuilder(ytFilePath)
-        await interaction.editReply({
-          content: 'Download completed from YouTube.',
-          files: [ytFileAttachment],
-        })
-        fs.unlinkSync(ytFilePath) // Clean up the file after sending
-      } catch (ytError) {
-        console.error('YouTube download error:', ytError)
-        await interaction.editReply(
-          'Error occurred while downloading from YouTube.',
-        )
-      }
+      console.error('Error occurred:', error);
+  
+      // Check if yt-dlp is installed before trying to use it
+      this.checkYtDlpInstalled().then(async (isInstalled) => {
+        if (isInstalled) {
+          try {
+            const ytFilePath = await this.downloadFromYouTube(query);
+            const ytFileAttachment = new AttachmentBuilder(ytFilePath);
+            await interaction.editReply({
+              content: 'Download completed from YouTube.',
+              files: [ytFileAttachment],
+            });
+            fs.unlinkSync(ytFilePath); // Clean up the file after sending
+          } catch (ytError) {
+            console.error('YouTube download error:', ytError);
+            await interaction.editReply('Error occurred while downloading from YouTube.');
+          }
+        } else {
+          await interaction.editReply('yt-dlp is not installed. Unable to download from YouTube.');
+        }
+      });
     }
   }
 
@@ -101,6 +105,15 @@ export default class DownloadCommand implements Command {
       )
     })
   }
+
+  private async checkYtDlpInstalled(): Promise<boolean> {
+    return new Promise((resolve) => {
+      exec('yt-dlp --version', (error) => {
+        resolve(!error);
+      });
+    });
+  }
+  
 
   private async downloadFile(url: string): Promise<string> {
     const response = await axios({
