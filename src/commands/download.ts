@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify'
+import { exec } from 'child_process'
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { TYPES } from '../types.js'
 import Config from '../services/config.js'
@@ -33,7 +34,7 @@ export default class DownloadCommand implements Command {
         .addChoices(
           { name: '128', value: '128' },
           { name: '320', value: '320' },
-        )
+        ),
     )
 
   private readonly config: Config
@@ -60,8 +61,45 @@ export default class DownloadCommand implements Command {
       fs.unlinkSync(filePath) // Clean up the file after sending
     } catch (error) {
       console.error('Error occurred:', error)
-      await interaction.editReply('Error occurred while downloading.')
+
+      // Fallback to youtube download via yt-dlp
+      try {
+        const ytFilePath = await this.downloadFromYouTube(query)
+        const ytFileAttachment = new AttachmentBuilder(ytFilePath)
+        await interaction.editReply({
+          content: 'Download completed from YouTube.',
+          files: [ytFileAttachment],
+        })
+        fs.unlinkSync(ytFilePath) // Clean up the file after sending
+      } catch (ytError) {
+        console.error('YouTube download error:', ytError)
+        await interaction.editReply(
+          'Error occurred while downloading from YouTube.',
+        )
+      }
     }
+  }
+
+  private async downloadFromYouTube(query: string): Promise<string> {
+    // Construct the YouTube search query
+    const ytSearchQuery = `ytsearch1:${query}`
+    const filename = `${query.replace(/ /g, '_')}.mp3`
+    const ytFilePath = path.join(outputDir, filename)
+
+    return new Promise((resolve, reject) => {
+      exec(
+        `yt-dlp -x --audio-format mp3 -o "${ytFilePath}" "${ytSearchQuery}"`,
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error downloading from YouTube:', stderr)
+            reject(error)
+          } else {
+            console.log('YouTube Download stdout:', stdout)
+            resolve(ytFilePath)
+          }
+        },
+      )
+    })
   }
 
   private async downloadFile(url: string): Promise<string> {
