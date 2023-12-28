@@ -61,7 +61,8 @@ export default class DownloadCommand implements Command {
       fs.unlinkSync(filePath); // Clean up the file after sending
     } catch (error) {
       console.error('Error occurred:', error);
-  
+      await interaction.editReply('Failed to find results with the original backend, fallback to youtube...');
+
       // Check if yt-dlp is installed before trying to use it
       this.checkYtDlpInstalled().then(async (isInstalled) => {
         if (isInstalled) {
@@ -69,13 +70,13 @@ export default class DownloadCommand implements Command {
             const ytFilePath = await this.downloadFromYouTube(query);
             const ytFileAttachment = new AttachmentBuilder(ytFilePath);
             await interaction.editReply({
-              content: 'Download completed from YouTube.',
+              content: 'Falling back to youtube...download completed.',
               files: [ytFileAttachment],
             });
             fs.unlinkSync(ytFilePath); // Clean up the file after sending
           } catch (ytError) {
             console.error('YouTube download error:', ytError);
-            await interaction.editReply('Error occurred while downloading from YouTube.');
+            await interaction.editReply('Fallback to youtube, but... Error occurred while downloading from YouTube.');
           }
         } else {
           await interaction.editReply('yt-dlp is not installed. Unable to download from YouTube.');
