@@ -25,6 +25,16 @@ export default class DownloadCommand implements Command {
     .addIntegerOption(option =>
       option.setName('offset').setDescription('Song offset').setRequired(false),
     )
+    .addStringOption(option =>
+      option
+        .setName('kbps')
+        .setDescription('The bitrate of the song')
+        .setRequired(false)
+        .addChoices(
+          { name: '128', value: '128' },
+          { name: '320', value: '320' },
+        )
+    )
 
   private readonly config: Config
 
@@ -35,7 +45,8 @@ export default class DownloadCommand implements Command {
     const query = interaction.options.getString('query')!
     const offset = interaction.options.getInteger('offset') ?? 0
     const songQuery = query.replace(/ /g, '+')
-    const url = `${this.config.DOWNLOAD_URL}${songQuery}&key=${this.config.DOWNLOAD_KEY}&offset=${offset}`
+    const kbpsQuery = interaction.options.getString('kbps') ?? '320'
+    const url = `${this.config.DOWNLOAD_URL}${songQuery}&key=${this.config.DOWNLOAD_KEY}&offset=${offset}&kbps=${kbpsQuery}`
     console.log(`Downloading song from ${url}`)
     await interaction.deferReply()
 
