@@ -2,11 +2,12 @@ FROM node:18.7.0-slim AS base
 
 # Install ffmpeg
 RUN apt-get update && \
-    apt-get install -y ffmpeg tini libssl-dev ca-certificates git curl wget && \
+    apt-get install -y ffmpeg tini libssl-dev ca-certificates git curl python && \
     rm -rf /var/lib/apt/lists/* && \
-    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp && \
+    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
     chmod a+rx /usr/local/bin/yt-dlp
 
+RUN if [ ! -x /usr/local/bin/yt-dlp ]; then echo "yt-dlp not executable"; exit 1; fi
 
 # Install dependencies
 FROM base AS dependencies
@@ -36,5 +37,7 @@ ENV DATA_DIR /data
 ENV NODE_ENV production
 ENV COMMIT_HASH $COMMIT_HASH
 ENV BUILD_DATE $BUILD_DATE
+ENV PATH="/usr/local/bin:${PATH}"
+RUN yt-dlp --version
 
 CMD ["tini", "--", "yarn", "start"]
