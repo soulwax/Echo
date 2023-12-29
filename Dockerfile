@@ -2,8 +2,11 @@ FROM node:18.7.0-slim AS base
 
 # Install ffmpeg
 RUN apt-get update && \
-    apt-get install -y ffmpeg tini libssl-dev ca-certificates git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y ffmpeg tini libssl-dev ca-certificates git curl wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp && \
+    chmod a+rx /usr/local/bin/yt-dlp
+
 
 # Install dependencies
 FROM base AS dependencies
