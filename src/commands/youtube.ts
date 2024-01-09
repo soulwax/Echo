@@ -25,6 +25,16 @@ export default class YoutubeDownloadCommand implements Command {
         .setDescription('The search query for the video')
         .setRequired(true),
     )
+    .addStringOption(option =>
+      option
+        .setName('quality')
+        .setDescription('The quality of the video')
+        .setRequired(false)
+        .addChoices(
+          { name: '50MB', value: 'bestvideo+bestaudio/best' },
+          { name: '8MB', value: 'worstvideo+worstaudio/worst' },
+          ),
+    )
 
   private readonly config: Config
 
@@ -45,11 +55,12 @@ export default class YoutubeDownloadCommand implements Command {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!
+    const quality = interaction.options.getString('quality')?.toLowerCase().trim()
     await interaction.deferReply()
 
     try {
-      const filePath = await this.downloadFileWithYtDlp(query, 'worstvideo') // Assume the worst scenario - unboosted server
-      await this.compressVideo(filePath)
+      const filePath = await this.downloadFileWithYtDlp(query, !quality? 'worstvideo:worstaudio:worst' : quality) // Assume the worst scenario - unboosted server
+      await this.compressVideo(filePath, quality === 'bestvideo+bestaudio/best' ? 50 : 8 )
 
       if (this.isFileSizeAcceptable(filePath)) {
         const fileAttachment = new AttachmentBuilder(filePath)
@@ -104,7 +115,7 @@ export default class YoutubeDownloadCommand implements Command {
             console.log('YouTube Download stdout:', stdout)
             const mp4FilePath = `${ytFilePath}.mp4` // Define the mp4 file path
             try {
-              await this.compressVideo(mp4FilePath)
+              await this.compressVideo(mp4FilePath, 8)
               resolve(mp4FilePath)
             } catch (compressError) {
               reject(compressError)
@@ -115,26 +126,41 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
-  private async compressVideo(filePath: string): Promise<void> {
+  private async compressVideo(
+    filePath: string,
+    targetSizeMB: number,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
-      // Estimate bitrate to target 50MB (8 * 8 * 1024 * 1024 bits)
-      // Assuming a 3-minute video, adjust duration (in seconds) accordingly
-      const duration = 180 // Example duration in seconds
-      const targetSize = 8 * 8 * 1024 * 1024 // 8 MB in bits, 50 MB for Boosted Servers only
-      const bitrate = Math.floor(targetSize / duration) // Target bitrate
-
+      // Use ffprobe to get the duration of the video
+      console.log('Probing size of source video...')
       exec(
-        `ffmpeg -i "${filePath}" -b:v ${bitrate} -bufsize ${bitrate} -vf "scale=iw/2:ih/2" "${compressedFilePath}"`,
+        `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`,
         (error, stdout, stderr) => {
           if (error) {
-            console.error('Error compressing video:', stderr)
+            console.error('Error getting video duration:', stderr)
             reject(error)
-          } else {
-            fs.unlinkSync(filePath) // Delete the original file
-            fs.renameSync(compressedFilePath, filePath) // Rename compressed file to original file name
-            resolve()
+            return
           }
+          console.log('Source video duration:', stdout)
+          const durationInSeconds = parseFloat(stdout)
+          const targetSize = targetSizeMB * 8 * 1024 * 1024 // Convert target size to bits
+          const bitrate = Math.floor(targetSize / durationInSeconds) // Calculate target bitrate
+
+          const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
+
+          exec(
+            `ffmpeg -i "${filePath}" -b:v ${bitrate} -bufsize ${bitrate} -vf "scale=iw/2:ih/2" "${compressedFilePath}"`,
+            (compressError, compressStdout, compressStderr) => {
+              if (compressError) {
+                console.error('Error compressing video:', compressStderr)
+                reject(compressError)
+              } else {
+                fs.unlinkSync(filePath) // Delete the original file
+                fs.renameSync(compressedFilePath, filePath) // Rename compressed file to original file name
+                resolve()
+              }
+            },
+          )
         },
       )
     })
