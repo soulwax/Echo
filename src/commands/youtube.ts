@@ -7,10 +7,13 @@ import {
   ChatInputCommandInteraction,
   AttachmentBuilder,
   Interaction,
+  StringSelectMenuComponent,
 } from 'discord.js'
 import path from 'path'
 import fs from 'fs'
+import axios from 'axios'
 import Command from './index.js'
+import { DownloadResult } from '../types.js'
 
 const outputDir = path.join('./videos/')
 
@@ -53,6 +56,8 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
+
+
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!
     const quality = interaction.options
@@ -62,40 +67,34 @@ export default class YoutubeDownloadCommand implements Command {
     await interaction.deferReply()
 
     try {
-      const filePath = await this.downloadFileWithYtDlp(
+      const { videoUrl, filePath } = await this.downloadFileWithYtDlp( // Property videoUrl and filePath does not exist on type 'object' 
         query,
-        !quality ? 'worstvideo:worstaudio:worst' : quality,
+        !quality ? 'worstvideo+worstaudio+worst' : quality,
       ) // Assume the worst scenario - unboosted server
       await this.compressVideo(
         filePath,
         quality === 'bestvideo+bestaudio/best' ? 50 : 8,
       )
 
-      if (
-        this.isFileSizeAcceptable(
-          filePath,
-          quality === 'bestvideo+bestaudio/best' ? 50 : 8,
-        )
-      ) {
+      if (this.isFileSizeAcceptable(filePath, 50 || 8)) {
         const fileAttachment = new AttachmentBuilder(filePath)
         await interaction.editReply({
           content: 'Download completed.',
           files: [fileAttachment],
         })
       } else {
-        // File too large, send YouTube link instead
-        const youtubeLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(
-          query,
-        )}`
+        // File too large, send direct YouTube video link instead
         await interaction.editReply({
-          content: `The video file is too large for Discord. Here's the YouTube link instead: ${youtubeLink}`,
+          content: `The video file is too large for Discord. Here's the direct YouTube link: ${videoUrl}`,
         })
       }
     } catch (error) {
       console.error(error)
+      // If an error occurs, send the YouTube link
+      const youtubeIdsFromQuery = await this.extractYoutubeIdsFromSearch(query)
+      const videoUrl = `https://www.youtube.com/watch?v=${youtubeIdsFromQuery[0]}`
       await interaction.editReply({
-        content: 'An error occurred while processing your request.',
-        ephemeral: true,
+        content: `An error occurred while processing your request. Here's the direct YouTube link: ${videoUrl}`,
       })
     }
   }
@@ -111,7 +110,7 @@ export default class YoutubeDownloadCommand implements Command {
   private async downloadFileWithYtDlp(
     query: string,
     quality?: string,
-  ): Promise<string> {
+  ): Promise<DownloadResult> {
     const ytDlpQuality = !quality ? 'bestvideo+bestaudio/best' : quality
     const ytSearchQuery = `ytsearch:${query}`
     const safeQuery = query.replace(/[^a-zA-Z0-9]/g, '_') // Sanitize query for filename
@@ -127,12 +126,11 @@ export default class YoutubeDownloadCommand implements Command {
             console.error('Error downloading from YouTube:', stderr)
             reject(error)
           } else {
-            const videoUrl = stdout.trim(); // Extract the direct video URL
-            const mp4FilePath = `${ytFilePath}.mp4`; // Define the mp4 file path
+            const videoUrl = stdout.trim() // Extract the direct video URL
+            const mp4FilePath = `${ytFilePath}.mp4` // Define the mp4 file path
             try {
               await this.compressVideo(mp4FilePath, 8)
               resolve({ filePath: mp4FilePath, videoUrl })
-              resolve(mp4FilePath)
             } catch (compressError) {
               reject(compressError)
             }
@@ -141,6 +139,8 @@ export default class YoutubeDownloadCommand implements Command {
       )
     })
   }
+
+  
 
   private async compressVideo(
     filePath: string,
@@ -187,5 +187,32 @@ export default class YoutubeDownloadCommand implements Command {
     const fileSizeInBytes = stats.size
     const maxSizeInBytes = quality * 1024 * 1024 // 50 MB for Boosted Servers only
     return fileSizeInBytes <= maxSizeInBytes
+  }
+
+  async extractYoutubeIdsFromSearch(query: string): Promise<string[]> {
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
+      query,
+    )}`
+    try {
+      const response = await axios.get<string>(searchUrl)
+      const html = response.data
+      const videoIds: string[] = []
+
+      // Regular expression to find video links in the HTML
+      const videoLinkRegex = /href="\/watch\?v=([a-zA-Z0-9_-]{11})"/g
+      let match: RegExpExecArray | null
+
+      // Extract all matches from the HTML
+      while ((match = videoLinkRegex.exec(html)) !== null) {
+        // The first group in the match contains the video ID
+        videoIds.push(match[1])
+      }
+
+      return videoIds
+    } catch (error) {
+      // Handle or throw the error
+      console.error('Error fetching YouTube search results:', error)
+      throw error
+    }
   }
 }

@@ -16,3 +16,8 @@ export const TYPES = {
     SpotifyAPI: Symbol('SpotifyAPI'),
   },
 }
+
+export interface DownloadResult {
+  filePath: string;
+  videoUrl: string;
+}
