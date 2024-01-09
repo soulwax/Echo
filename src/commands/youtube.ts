@@ -3,7 +3,11 @@ import { exec } from 'child_process'
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { TYPES } from '../types.js'
 import Config from '../services/config.js'
-import { ChatInputCommandInteraction, AttachmentBuilder } from 'discord.js'
+import {
+  ChatInputCommandInteraction,
+  AttachmentBuilder,
+  Interaction,
+} from 'discord.js'
 import path from 'path'
 import fs from 'fs'
 import Command from './index.js'
@@ -38,32 +42,34 @@ export default class YoutubeDownloadCommand implements Command {
       }
     })
   }
+
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!
     await interaction.deferReply()
 
     try {
-      const filePath = await this.downloadFileWithYtDlp(query)
-      if (!this.isFileSizeAcceptable(filePath)) {
-        await interaction.editReply({
-          content:
-            'Download completed, but the file is too large to upload to Discord.',
-        })
-        return
-      }
-      const fileAttachment = new AttachmentBuilder(filePath)
-      // if file is too large, compress again
+      const filePath = await this.downloadFileWithYtDlp(query, 'worstvideo') // Assume the worst scenario - unboosted server
+      await this.compressVideo(filePath)
 
-      await interaction.editReply({
-        content: 'Download completed.',
-        files: [fileAttachment],
-      })
+      if (this.isFileSizeAcceptable(filePath)) {
+        const fileAttachment = new AttachmentBuilder(filePath)
+        await interaction.editReply({
+          content: 'Download completed.',
+          files: [fileAttachment],
+        })
+      } else {
+        // File too large, send YouTube link instead
+        const youtubeLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(
+          query,
+        )}`
+        await interaction.editReply({
+          content: `The video file is too large for Discord. Here's the YouTube link instead: ${youtubeLink}`,
+        })
+      }
     } catch (error) {
       console.error(error)
-
       await interaction.editReply({
-        content:
-          'Download failed. Request entity either too large (much more likely) or timed out.',
+        content: 'An error occurred while processing your request.',
       })
     }
   }
@@ -76,7 +82,11 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
-  private async downloadFileWithYtDlp(query: string): Promise<string> {
+  private async downloadFileWithYtDlp(
+    query: string,
+    quality?: string,
+  ): Promise<string> {
+    const ytDlpQuality = !quality ? 'bestvideo+bestaudio/best' : quality
     const ytSearchQuery = `ytsearch:${query}`
     const safeQuery = query.replace(/[^a-zA-Z0-9]/g, '_') // Sanitize query for filename
     const ytFilePath = path.join(outputDir, safeQuery)
@@ -85,7 +95,7 @@ export default class YoutubeDownloadCommand implements Command {
     return new Promise((resolve, reject) => {
       // Download the best format and convert to mp4 using ffmpeg
       exec(
-        `yt-dlp -f bestvideo+bestaudio/best --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
+        `yt-dlp -f ${ytDlpQuality} --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
         async (error, stdout, stderr) => {
           if (error) {
             console.error('Error downloading from YouTube:', stderr)
@@ -108,9 +118,14 @@ export default class YoutubeDownloadCommand implements Command {
   private async compressVideo(filePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
-      // Reduce resolution and bitrate to further compress the video
+      // Estimate bitrate to target 50MB (8 * 8 * 1024 * 1024 bits)
+      // Assuming a 3-minute video, adjust duration (in seconds) accordingly
+      const duration = 180 // Example duration in seconds
+      const targetSize = 8 * 8 * 1024 * 1024 // 8 MB in bits, 50 MB for Boosted Servers only
+      const bitrate = Math.floor(targetSize / duration) // Target bitrate
+
       exec(
-        `ffmpeg -i "${filePath}" -vcodec libx264 -crf 30 -vf "scale=iw/2:ih/2" "${compressedFilePath}"`,
+        `ffmpeg -i "${filePath}" -b:v ${bitrate} -bufsize ${bitrate} -vf "scale=iw/2:ih/2" "${compressedFilePath}"`,
         (error, stdout, stderr) => {
           if (error) {
             console.error('Error compressing video:', stderr)
@@ -125,11 +140,10 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
-  // New function to check file size
   private isFileSizeAcceptable(filePath: string): boolean {
     const stats = fs.statSync(filePath)
     const fileSizeInBytes = stats.size
-    const maxSizeInBytes = 50 * 1024 * 1024 // 8 MB for standard Discord users
+    const maxSizeInBytes = 8 * 1024 * 1024 // 50 MB for Boosted Servers only
     return fileSizeInBytes <= maxSizeInBytes
   }
 }
