@@ -27,6 +27,7 @@ import Next from './commands/next.js'
 import NowPlaying from './commands/now-playing.js'
 import Pause from './commands/pause.js'
 import Play from './commands/play.js'
+import PlayNext from './commands/playnext.js'
 import QueueCommand from './commands/queue.js'
 import Remove from './commands/remove.js'
 import Replay from './commands/replay.js'
@@ -35,6 +36,7 @@ import Seek from './commands/seek.js'
 import Shuffle from './commands/shuffle.js'
 import Skip from './commands/skip.js'
 import Stop from './commands/stop.js'
+import Youtube from './commands/youtube.js'
 import Download from './commands/download.js'
 import Unskip from './commands/unskip.js'
 import ThirdParty from './services/third-party.js'
@@ -90,7 +92,9 @@ container
   NowPlaying,
   Pause,
   Download,
+  Youtube,
   Play,
+  PlayNext,
   QueueCommand,
   Remove,
   Replay,
