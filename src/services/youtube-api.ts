@@ -83,7 +83,7 @@ export default class {
     query: string,
     shouldSplitChapters: boolean,
   ): Promise<SongMetadata[]> {
-    const { items } = await this.ytsrQueue.add(async () =>
+    const result = await this.ytsrQueue.add(async () =>
       this.cache.wrap(
         ytsr,
         query,
@@ -95,6 +95,12 @@ export default class {
         },
       ),
     )
+
+    if (!result || typeof result !== 'object' || !('items' in result)) {
+      throw new Error('Invalid result type')
+    }
+
+    const { items } = result
 
     let firstVideo: Video | undefined
 
