@@ -14,6 +14,7 @@ import fs from 'fs'
 import axios from 'axios'
 import Command from './index.js'
 import { DownloadResult } from '../types.js'
+import ytsr from 'ytsr'
 
 const outputDir = path.join('./videos/')
 
@@ -34,8 +35,8 @@ export default class YoutubeDownloadCommand implements Command {
         .setDescription('The quality of the video')
         .setRequired(false)
         .addChoices(
-          { name: '50MB', value: 'bestvideo+bestaudio/best' },
-          { name: '8MB', value: 'worstvideo+worstaudio/worst' },
+          { name: 'Best', value: 'bestvideo+bestaudio/best' },
+          { name: 'Normal', value: 'worstvideo+worstaudio/worst' },
         ),
     )
 
@@ -91,10 +92,12 @@ export default class YoutubeDownloadCommand implements Command {
     } catch (error) {
       console.error(error)
       // If an error occurs, send the YouTube link
-      const youtubeIdsFromQuery = await this.extractYoutubeIdsFromSearch(query)
-      const videoUrl = `https://www.youtube.com/watch?v=${youtubeIdsFromQuery[0]}`
+      const ytidFromQuery = await this.extractFirstYoutubeIdFromSearch(query)
+      let videoURLs = []
+
+      const videoUrl = `https://www.youtube.com/watch?v=${ytidFromQuery}`
       await interaction.editReply({
-        content: `An error occurred while processing your request. Here's the direct YouTube link: ${videoUrl}`,
+        content: `An error occurred while processing your request. Here's some results instead: ${videoUrl}`,
       })
     }
   }
@@ -189,30 +192,12 @@ export default class YoutubeDownloadCommand implements Command {
     return fileSizeInBytes <= maxSizeInBytes
   }
 
-  async extractYoutubeIdsFromSearch(query: string): Promise<string[]> {
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
-      query,
-    )}`
-    try {
-      const response = await axios.get<string>(searchUrl)
-      const html = response.data
-      const videoIds: string[] = []
-
-      // Regular expression to find video links in the HTML
-      const videoLinkRegex = /href="\/watch\?v=([a-zA-Z0-9_-]{11})"/g
-      let match: RegExpExecArray | null
-
-      // Extract all matches from the HTML
-      while ((match = videoLinkRegex.exec(html)) !== null) {
-        // The first group in the match contains the video ID
-        videoIds.push(match[1])
-      }
-
-      return videoIds
-    } catch (error) {
-      // Handle or throw the error
-      console.error('Error fetching YouTube search results:', error)
-      throw error
+  private async extractFirstYoutubeIdFromSearch(query: string): Promise<string> {
+    const searchResults = await ytsr(query, { limit: 1 });
+    const firstResult = searchResults.items.find(item => item.type === 'video');
+    if (!firstResult || !('id' in firstResult)) {
+      throw new Error('No video found.');
     }
+    return firstResult.id;
   }
 }
