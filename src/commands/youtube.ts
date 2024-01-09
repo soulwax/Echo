@@ -33,7 +33,7 @@ export default class YoutubeDownloadCommand implements Command {
         .addChoices(
           { name: '50MB', value: 'bestvideo+bestaudio/best' },
           { name: '8MB', value: 'worstvideo+worstaudio/worst' },
-          ),
+        ),
     )
 
   private readonly config: Config
@@ -55,14 +55,28 @@ export default class YoutubeDownloadCommand implements Command {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!
-    const quality = interaction.options.getString('quality')?.toLowerCase().trim()
+    const quality = interaction.options
+      .getString('quality')
+      ?.toLowerCase()
+      .trim()
     await interaction.deferReply()
 
     try {
-      const filePath = await this.downloadFileWithYtDlp(query, !quality? 'worstvideo:worstaudio:worst' : quality) // Assume the worst scenario - unboosted server
-      await this.compressVideo(filePath, quality === 'bestvideo+bestaudio/best' ? 50 : 8 )
+      const filePath = await this.downloadFileWithYtDlp(
+        query,
+        !quality ? 'worstvideo:worstaudio:worst' : quality,
+      ) // Assume the worst scenario - unboosted server
+      await this.compressVideo(
+        filePath,
+        quality === 'bestvideo+bestaudio/best' ? 50 : 8,
+      )
 
-      if (this.isFileSizeAcceptable(filePath)) {
+      if (
+        this.isFileSizeAcceptable(
+          filePath,
+          quality === 'bestvideo+bestaudio/best' ? 50 : 8,
+        )
+      ) {
         const fileAttachment = new AttachmentBuilder(filePath)
         await interaction.editReply({
           content: 'Download completed.',
@@ -81,6 +95,7 @@ export default class YoutubeDownloadCommand implements Command {
       console.error(error)
       await interaction.editReply({
         content: 'An error occurred while processing your request.',
+        ephemeral: true,
       })
     }
   }
@@ -106,16 +121,17 @@ export default class YoutubeDownloadCommand implements Command {
     return new Promise((resolve, reject) => {
       // Download the best format and convert to mp4 using ffmpeg
       exec(
-        `yt-dlp -f ${ytDlpQuality} --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
+        `yt-dlp -f ${ytDlpQuality} --get-url --merge-output-format mp4 "${ytSearchQuery}"`,
         async (error, stdout, stderr) => {
           if (error) {
             console.error('Error downloading from YouTube:', stderr)
             reject(error)
           } else {
-            console.log('YouTube Download stdout:', stdout)
-            const mp4FilePath = `${ytFilePath}.mp4` // Define the mp4 file path
+            const videoUrl = stdout.trim(); // Extract the direct video URL
+            const mp4FilePath = `${ytFilePath}.mp4`; // Define the mp4 file path
             try {
               await this.compressVideo(mp4FilePath, 8)
+              resolve({ filePath: mp4FilePath, videoUrl })
               resolve(mp4FilePath)
             } catch (compressError) {
               reject(compressError)
@@ -166,10 +182,10 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
-  private isFileSizeAcceptable(filePath: string): boolean {
+  private isFileSizeAcceptable(filePath: string, quality: number): boolean {
     const stats = fs.statSync(filePath)
     const fileSizeInBytes = stats.size
-    const maxSizeInBytes = 8 * 1024 * 1024 // 50 MB for Boosted Servers only
+    const maxSizeInBytes = quality * 1024 * 1024 // 50 MB for Boosted Servers only
     return fileSizeInBytes <= maxSizeInBytes
   }
 }
