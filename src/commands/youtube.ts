@@ -123,7 +123,7 @@ export default class YoutubeDownloadCommand implements Command {
     return new Promise((resolve, reject) => {
       // Download the best format and convert to mp4 using ffmpeg
       exec(
-        `yt-dlp -f ${ytDlpQuality} --get-url --merge-output-format mp4 "${ytSearchQuery}"`,
+        `yt-dlp -f ${ytDlpQuality} --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
         async (error, stdout, stderr) => {
           if (error) {
             console.error('Error downloading from YouTube:', stderr)
