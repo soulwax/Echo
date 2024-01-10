@@ -7,7 +7,7 @@ import { SlashCommandBuilder } from '@discordjs/builders'
 import { buildPlayingMessageEmbed } from '../utils/build-embed.js'
 
 @injectable()
-export default class implements Command {
+export default class Skip implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('skip')
     .setDescription('skip the next songs')

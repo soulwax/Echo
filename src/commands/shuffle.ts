@@ -6,7 +6,7 @@ import Command from '.'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
 @injectable()
-export default class implements Command {
+export default class Shuffle implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('shuffle')
     .setDescription('shuffle the current queue')

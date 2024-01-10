@@ -15,7 +15,7 @@ import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js'
 import AddQueryToQueue from '../services/add-query-to-queue.js'
 
 @injectable()
-export default class implements Command {
+export default class Play implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('play')
     .setDescription('play a song')

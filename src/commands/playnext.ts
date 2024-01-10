@@ -17,7 +17,7 @@ import AddQueryToQueue from '../services/add-query-to-queue.js'
 @injectable()
 export default class PlayNext implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
-    .setName('play')
+    .setName('playnext')
     .setDescription('play a song')
     .addStringOption(option =>
       option

@@ -8,7 +8,7 @@ import { SlashCommandBuilder } from '@discordjs/builders'
 import durationStringToSeconds from '../utils/duration-string-to-seconds.js'
 
 @injectable()
-export default class implements Command {
+export default class Seek implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('seek')
     .setDescription('seek to a position from beginning of song')

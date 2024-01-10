@@ -6,7 +6,7 @@ import Command from '.'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
 @injectable()
-export default class implements Command {
+export default class Replay implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('replay')
     .setDescription('replay the current song')
