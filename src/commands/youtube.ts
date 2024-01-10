@@ -123,7 +123,7 @@ export default class YoutubeDownloadCommand implements Command {
     return new Promise((resolve, reject) => {
       // Download the best format and convert to mp4 using ffmpeg
       exec(
-        `yt-dlp -f ${ytDlpQuality} --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
+        `yt-dlp -f ${ytDlpQuality} --get-url --merge-output-format mp4 "${ytSearchQuery}"`,
         async (error, stdout, stderr) => {
           if (error) {
             console.error('Error downloading from YouTube:', stderr)
@@ -145,45 +145,56 @@ export default class YoutubeDownloadCommand implements Command {
 
   
 
-  private async compressVideo(
-    filePath: string,
-    targetSizeMB: number,
-  ): Promise<void> {
+  private async compressVideo(filePath: string, targetSizeMB: number): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Use ffprobe to get the duration of the video
-      console.log('Probing size of source video...')
+      console.log('Probing size of source video...');
       exec(
         `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`,
         (error, stdout, stderr) => {
           if (error) {
-            console.error('Error getting video duration:', stderr)
-            reject(error)
-            return
+            console.error('Error getting video duration:', stderr);
+            reject(error);
+            return;
           }
-          console.log('Source video duration:', stdout)
-          const durationInSeconds = parseFloat(stdout)
-          const targetSize = targetSizeMB * 8 * 1024 * 1024 // Convert target size to bits
-          const bitrate = Math.floor(targetSize / durationInSeconds) // Calculate target bitrate
-
-          const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
-
+  
+          const durationInSeconds = parseFloat(stdout);
+          const targetSize = targetSizeMB * 8 * 1024 * 1024; // Convert target size to bits
+          const bitrate = Math.floor(targetSize / durationInSeconds); // Calculate target bitrate
+  
+          const scale = targetSizeMB > 30 ? 'iw/2:ih/2' : 'iw/4:ih/4'; // Adjust scale based on target size
+          const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4');
+  
+          // First pass
           exec(
-            `ffmpeg -i "${filePath}" -b:v ${bitrate} -bufsize ${bitrate} -vf "scale=iw/2:ih/2" "${compressedFilePath}"`,
-            (compressError, compressStdout, compressStderr) => {
-              if (compressError) {
-                console.error('Error compressing video:', compressStderr)
-                reject(compressError)
-              } else {
-                fs.unlinkSync(filePath) // Delete the original file
-                fs.renameSync(compressedFilePath, filePath) // Rename compressed file to original file name
-                resolve()
+            `ffmpeg -i "${filePath}" -b:v ${bitrate} -pass 1 -an -f mp4 -vf "scale=${scale}" -y /dev/null`,
+            (firstPassError) => {
+              if (firstPassError) {
+                console.error('Error during first pass of compression:', firstPassError);
+                reject(firstPassError);
+                return;
               }
+  
+              // Second pass
+              exec(
+                `ffmpeg -i "${filePath}" -b:v ${bitrate} -pass 2 -c:a aac -b:a 128k -vf "scale=${scale}" "${compressedFilePath}"`,
+                (secondPassError, compressStdout, compressStderr) => {
+                  if (secondPassError) {
+                    console.error('Error during second pass of compression:', compressStderr);
+                    reject(secondPassError);
+                  } else {
+                    fs.unlinkSync(filePath); // Delete the original file
+                    fs.renameSync(compressedFilePath, filePath); // Rename compressed file to original file name
+                    resolve();
+                  }
+                },
+              );
             },
-          )
+          );
         },
-      )
-    })
+      );
+    });
   }
+  
 
   private isFileSizeAcceptable(filePath: string, quality: number): boolean {
     const stats = fs.statSync(filePath)
