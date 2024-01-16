@@ -106,29 +106,23 @@ export default class YoutubeDownloadCommand implements Command {
     query: string,
     quality?: string,
   ): Promise<DownloadResult> {
-    const ytDlpQuality = !quality ? 'bestvideo+bestaudio/best' : quality
+    const ytDlpQuality = quality || 'bestvideo+bestaudio/best'
     const ytSearchQuery = `ytsearch:${query}`
     const safeQuery = query.replace(/[^a-zA-Z0-9]/g, '_') // Sanitize query for filename
     const ytFilePath = path.join(outputDir, safeQuery)
     const outputTemplate = `${ytFilePath}.%(ext)s` // Include extension in output template
 
     return new Promise((resolve, reject) => {
-      // Download the best format and convert to mp4 using ffmpeg
       exec(
-        `yt-dlp -f ${ytDlpQuality} --get-url --merge-output-format mp4 "${ytSearchQuery}"`,
+        `yt-dlp -f ${ytDlpQuality} --get-url --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
         async (error, stdout, stderr) => {
           if (error) {
             console.error('Error downloading from YouTube:', stderr)
-            reject(error)
+            reject(new Error('Failed to download video.'))
           } else {
-            const videoUrl = stdout.trim() // Extract the direct video URL
+            const videoUrl = stdout.trim().split('\n')[0] // Extract the direct video URL
             const mp4FilePath = `${ytFilePath}.mp4` // Define the mp4 file path
-            try {
-              await this.compressVideo(mp4FilePath, 8)
-              resolve({ filePath: mp4FilePath, videoUrl })
-            } catch (compressError) {
-              reject(compressError)
-            }
+            resolve({ filePath: mp4FilePath, videoUrl })
           }
         },
       )
@@ -140,13 +134,12 @@ export default class YoutubeDownloadCommand implements Command {
     targetSizeMB: number,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      console.log('Probing size of source video...')
       exec(
         `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`,
         (error, stdout, stderr) => {
           if (error) {
             console.error('Error getting video duration:', stderr)
-            reject(error)
+            reject(new Error('Failed to get video duration.'))
             return
           }
 
@@ -159,27 +152,27 @@ export default class YoutubeDownloadCommand implements Command {
 
           // First pass
           exec(
-            `ffmpeg -i "${filePath}" -b:v ${bitrate} -pass 1 -an -f mp4 -vf "scale=${scale}" -y /dev/null`,
+            `ffmpeg -i "${filePath}" -b:v ${bitrate}k -pass 1 -an -f mp4 -vf "scale=${scale}" -y /dev/null`,
             firstPassError => {
               if (firstPassError) {
                 console.error(
                   'Error during first pass of compression:',
                   firstPassError,
                 )
-                reject(firstPassError)
+                reject(new Error('First pass compression failed.'))
                 return
               }
 
               // Second pass
               exec(
-                `ffmpeg -i "${filePath}" -b:v ${bitrate} -pass 2 -c:a aac -b:a 128k -vf "scale=${scale}" "${compressedFilePath}"`,
+                `ffmpeg -i "${filePath}" -b:v ${bitrate}k -pass 2 -c:a aac -b:a 128k -vf "scale=${scale}" "${compressedFilePath}"`,
                 (secondPassError, compressStdout, compressStderr) => {
                   if (secondPassError) {
                     console.error(
                       'Error during second pass of compression:',
                       compressStderr,
                     )
-                    reject(secondPassError)
+                    reject(new Error('Second pass compression failed.'))
                   } else {
                     fs.unlinkSync(filePath) // Delete the original file
                     fs.renameSync(compressedFilePath, filePath) // Rename compressed file to original file name
