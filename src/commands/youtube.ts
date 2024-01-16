@@ -148,7 +148,12 @@ export default class YoutubeDownloadCommand implements Command {
           const bitrate = Math.floor(targetSize / durationInSeconds) // Calculate target bitrate
 
           // For better quality, I now use a two-pass encoding process with adjusted CRF (Constant Rate Factor) and preset
-          const scale = targetSizeMB > 25 ? 'iw/2:ih/2' : targetSizeMB < 12 ? 'iw/4:ih/4' : '' // Adjust scale based on target size
+          const scale =
+            targetSizeMB > 25
+              ? 'iw/2:ih/2'
+              : targetSizeMB < 12
+                ? 'iw/4:ih/4'
+                : '' // Adjust scale based on target size
           const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
           const crfValue = targetSizeMB > 25 ? '23' : '28' // Lower CRF value for better quality, but higher file size
           const preset = 'slow' // Slower presets provide better compression
