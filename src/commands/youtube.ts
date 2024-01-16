@@ -147,12 +147,15 @@ export default class YoutubeDownloadCommand implements Command {
           const targetSize = targetSizeMB * 8 * 1024 * 1024 // Convert target size to bits
           const bitrate = Math.floor(targetSize / durationInSeconds) // Calculate target bitrate
 
-          const scale = targetSizeMB > 30 ? 'iw/2:ih/2' : 'iw/4:ih/4' // Adjust scale based on target size
+          // For better quality, I now use a two-pass encoding process with adjusted CRF (Constant Rate Factor) and preset
+          const scale = targetSizeMB > 25 ? 'iw/2:ih/2' : targetSizeMB < 12 ? 'iw/4:ih/4' : '' // Adjust scale based on target size
           const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
+          const crfValue = targetSizeMB > 25 ? '23' : '28' // Lower CRF value for better quality, but higher file size
+          const preset = 'slow' // Slower presets provide better compression
 
-          // First pass
+          // First pass with CRF and preset settings
           exec(
-            `ffmpeg -i "${filePath}" -b:v ${bitrate}k -pass 1 -an -f mp4 -vf "scale=${scale}" -y /dev/null`,
+            `ffmpeg -i "${filePath}" -b:v ${bitrate}k -pass 1 -c:v libx264 -preset ${preset} -crf ${crfValue} -an -vf "scale=${scale}" -f mp4 -y /dev/null`,
             firstPassError => {
               if (firstPassError) {
                 console.error(
@@ -165,7 +168,7 @@ export default class YoutubeDownloadCommand implements Command {
 
               // Second pass
               exec(
-                `ffmpeg -i "${filePath}" -b:v ${bitrate}k -pass 2 -c:a aac -b:a 128k -vf "scale=${scale}" "${compressedFilePath}"`,
+                `ffmpeg -i "${filePath}" -b:v ${bitrate}k -pass 2 -c:v libx264 -preset ${preset} -crf ${crfValue} -c:a aac -b:a 128k -vf "scale=${scale}" "${compressedFilePath}"`,
                 (secondPassError, compressStdout, compressStderr) => {
                   if (secondPassError) {
                     console.error(
