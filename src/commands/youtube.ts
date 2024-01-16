@@ -3,12 +3,7 @@ import { exec } from 'child_process'
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { TYPES } from '../types.js'
 import Config from '../services/config.js'
-import {
-  ChatInputCommandInteraction,
-  AttachmentBuilder,
-  Interaction,
-  StringSelectMenuComponent,
-} from 'discord.js'
+import { ChatInputCommandInteraction, AttachmentBuilder } from 'discord.js'
 import path from 'path'
 import fs from 'fs'
 import axios from 'axios'
@@ -16,7 +11,10 @@ import Command from './index.js'
 import { DownloadResult } from '../types.js'
 import ytsr from 'ytsr'
 
-const outputDir = path.join('./videos/')
+const MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER = 8
+const MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER = 50
+
+const outputDir = path.join(__dirname, 'videos')
 
 @injectable()
 export default class YoutubeDownloadCommand implements Command {
@@ -57,47 +55,41 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
-
-
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!
-    const quality = interaction.options
-      .getString('quality')
-      ?.toLowerCase()
-      .trim()
+    const quality =
+      interaction.options.getString('quality') || 'worstvideo+worstaudio/worst'
+
     await interaction.deferReply()
 
     try {
-      const { videoUrl, filePath } = await this.downloadFileWithYtDlp( // Property videoUrl and filePath does not exist on type 'object' 
+      const { videoUrl, filePath } = await this.downloadFileWithYtDlp(
         query,
-        !quality ? 'worstvideo+worstaudio+worst' : quality,
-      ) // Assume the worst scenario - unboosted server
-      await this.compressVideo(
-        filePath,
-        quality === 'bestvideo+bestaudio/best' ? 50 : 8,
+        quality,
       )
 
-      if (this.isFileSizeAcceptable(filePath, 50 || 8)) {
+      const qualityValue =
+        quality === 'bestvideo+bestaudio/best'
+          ? MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER
+          : MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER
+      await this.compressVideo(filePath, qualityValue)
+
+      if (this.isFileSizeAcceptable(filePath, qualityValue)) {
         const fileAttachment = new AttachmentBuilder(filePath)
         await interaction.editReply({
           content: 'Download completed.',
           files: [fileAttachment],
         })
       } else {
-        // File too large, send direct YouTube video link instead
         await interaction.editReply({
-          content: `The video file is too large for Discord. Here's the direct YouTube link: ${videoUrl}`,
+          content: `The video file is too large for this Discord server. Here's the direct YouTube link: ${videoUrl}`,
         })
       }
     } catch (error) {
       console.error(error)
-      // If an error occurs, send the YouTube link
-      const ytidFromQuery = await this.extractFirstYoutubeIdFromSearch(query)
-      let videoURLs = []
-
-      const videoUrl = `https://www.youtube.com/watch?v=${ytidFromQuery}`
+      const videoUrl = await this.getFallbackYoutubeLink(query)
       await interaction.editReply({
-        content: `An error occurred while processing your request. Here's some results instead: ${videoUrl}`,
+        content: `Server probably not fit fore meaningful compression sizes. Here's a direct link instead: ${videoUrl}`,
       })
     }
   }
@@ -143,72 +135,90 @@ export default class YoutubeDownloadCommand implements Command {
     })
   }
 
-  
-
-  private async compressVideo(filePath: string, targetSizeMB: number): Promise<void> {
+  private async compressVideo(
+    filePath: string,
+    targetSizeMB: number,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
-      console.log('Probing size of source video...');
+      console.log('Probing size of source video...')
       exec(
         `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`,
         (error, stdout, stderr) => {
           if (error) {
-            console.error('Error getting video duration:', stderr);
-            reject(error);
-            return;
+            console.error('Error getting video duration:', stderr)
+            reject(error)
+            return
           }
-  
-          const durationInSeconds = parseFloat(stdout);
-          const targetSize = targetSizeMB * 8 * 1024 * 1024; // Convert target size to bits
-          const bitrate = Math.floor(targetSize / durationInSeconds); // Calculate target bitrate
-  
-          const scale = targetSizeMB > 30 ? 'iw/2:ih/2' : 'iw/4:ih/4'; // Adjust scale based on target size
-          const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4');
-  
+
+          const durationInSeconds = parseFloat(stdout)
+          const targetSize = targetSizeMB * 8 * 1024 * 1024 // Convert target size to bits
+          const bitrate = Math.floor(targetSize / durationInSeconds) // Calculate target bitrate
+
+          const scale = targetSizeMB > 30 ? 'iw/2:ih/2' : 'iw/4:ih/4' // Adjust scale based on target size
+          const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
+
           // First pass
           exec(
             `ffmpeg -i "${filePath}" -b:v ${bitrate} -pass 1 -an -f mp4 -vf "scale=${scale}" -y /dev/null`,
-            (firstPassError) => {
+            firstPassError => {
               if (firstPassError) {
-                console.error('Error during first pass of compression:', firstPassError);
-                reject(firstPassError);
-                return;
+                console.error(
+                  'Error during first pass of compression:',
+                  firstPassError,
+                )
+                reject(firstPassError)
+                return
               }
-  
+
               // Second pass
               exec(
                 `ffmpeg -i "${filePath}" -b:v ${bitrate} -pass 2 -c:a aac -b:a 128k -vf "scale=${scale}" "${compressedFilePath}"`,
                 (secondPassError, compressStdout, compressStderr) => {
                   if (secondPassError) {
-                    console.error('Error during second pass of compression:', compressStderr);
-                    reject(secondPassError);
+                    console.error(
+                      'Error during second pass of compression:',
+                      compressStderr,
+                    )
+                    reject(secondPassError)
                   } else {
-                    fs.unlinkSync(filePath); // Delete the original file
-                    fs.renameSync(compressedFilePath, filePath); // Rename compressed file to original file name
-                    resolve();
+                    fs.unlinkSync(filePath) // Delete the original file
+                    fs.renameSync(compressedFilePath, filePath) // Rename compressed file to original file name
+                    resolve()
                   }
                 },
-              );
+              )
             },
-          );
+          )
         },
-      );
-    });
+      )
+    })
   }
-  
 
-  private isFileSizeAcceptable(filePath: string, quality: number): boolean {
+  private isFileSizeAcceptable(filePath: string, maxSizeMB: number): boolean {
     const stats = fs.statSync(filePath)
     const fileSizeInBytes = stats.size
-    const maxSizeInBytes = quality * 1024 * 1024 // 50 MB for Boosted Servers only
+    const maxSizeInBytes = maxSizeMB * 1024 * 1024
     return fileSizeInBytes <= maxSizeInBytes
   }
 
-  private async extractFirstYoutubeIdFromSearch(query: string): Promise<string> {
-    const searchResults = await ytsr(query, { limit: 1 });
-    const firstResult = searchResults.items.find(item => item.type === 'video');
-    if (!firstResult || !('id' in firstResult)) {
-      throw new Error('No video found.');
+  private async getFallbackYoutubeLink(query: string): Promise<string> {
+    try {
+      const ytidFromQuery = await this.extractFirstYoutubeIdFromSearch(query)
+      return `https://www.youtube.com/watch?v=${ytidFromQuery}`
+    } catch (e) {
+      console.error('Error extracting YouTube ID:', e)
+      return 'Error: Unable to retrieve YouTube link.'
     }
-    return firstResult.id;
+  }
+
+  private async extractFirstYoutubeIdFromSearch(
+    query: string,
+  ): Promise<string> {
+    const searchResults = await ytsr(query, { limit: 1 })
+    const firstResult = searchResults.items.find(item => item.type === 'video')
+    if (!firstResult || !('id' in firstResult)) {
+      throw new Error('No video found.')
+    }
+    return firstResult.id
   }
 }
