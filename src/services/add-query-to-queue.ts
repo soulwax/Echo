@@ -1,18 +1,18 @@
 /* eslint-disable complexity */
-import { ChatInputCommandInteraction, GuildMember } from 'discord.js'
-import { URL } from 'node:url'
-import { inject, injectable } from 'inversify'
 import shuffle from 'array-shuffle'
-import { TYPES } from '../types.js'
-import GetSongs from '../services/get-songs.js'
-import { SongMetadata, STATUS } from './player.js'
+import { ChatInputCommandInteraction, GuildMember } from 'discord.js'
+import { inject, injectable } from 'inversify'
+import { URL } from 'node:url'
 import PlayerManager from '../managers/player.js'
+import GetSongs from '../services/get-songs.js'
+import { TYPES } from '../types.js'
 import { buildPlayingMessageEmbed } from '../utils/build-embed.js'
 import {
   getMemberVoiceChannel,
   getMostPopularVoiceChannel,
 } from '../utils/channels.js'
 import { getGuildSettings } from '../utils/get-guild-settings'
+import { STATUS, SongMetadata } from './player.js'
 
 @injectable()
 export default class AddQueryToQueue {
@@ -20,7 +20,7 @@ export default class AddQueryToQueue {
     @inject(TYPES.Services.GetSongs) private readonly getSongs: GetSongs,
     @inject(TYPES.Managers.Player)
     private readonly playerManager: PlayerManager,
-  ) {}
+  ) { }
 
   public async addToQueue({
     query,
@@ -193,14 +193,12 @@ export default class AddQueryToQueue {
 
     if (newSongs.length === 1) {
       await interaction.editReply(
-        `Who's your daddy?, **${firstSong.title}** added to the${
-          addToFrontOfQueue ? ' front of the' : ''
+        `**${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''
         } queue${extraMsg}`,
       )
     } else {
       await interaction.editReply(
-        `Who's your daddy? **${firstSong.title}** and ${
-          newSongs.length - 1
+        `**${firstSong.title}** and ${newSongs.length - 1
         } other songs were added to the queue${extraMsg}`,
       )
     }

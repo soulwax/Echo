@@ -1,19 +1,20 @@
-import { inject, injectable } from 'inversify'
-import { exec } from 'child_process'
 import { SlashCommandBuilder } from '@discordjs/builders'
-import { TYPES } from '../types.js'
-import Config from '../services/config.js'
-import { ChatInputCommandInteraction, AttachmentBuilder } from 'discord.js'
-import path from 'path'
+import { exec } from 'child_process'
+import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js'
 import fs from 'fs'
-import axios from 'axios'
-import Command from './index.js'
-import { DownloadResult } from '../types.js'
+import { inject, injectable } from 'inversify'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import ytsr from 'ytsr'
+import Config from '../services/config.js'
+import { DownloadResult, TYPES } from '../types.js'
+import Command from './index.js'
 
 const MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER = 8
 const MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER = 50
-
+// Convert the URL of the current module to a file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const outputDir = path.join(__dirname, 'videos')
 
 @injectable()
