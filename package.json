@@ -3,7 +3,7 @@
   "version": "2.4.4",
   "description": "self-hosted no bs Discord music bot that doesn't suck fr.",
   "repository": "git@github.com:soulwax/ECHO_DISCORD.git",
-  "author": "<soulwax@dabox.one>",
+  "author": "soulwax@dabox.one",
   "license": "LGPL-3.0-or-later",
   "private": true,
   "types": "dts/types",
