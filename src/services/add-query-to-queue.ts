@@ -20,7 +20,7 @@ export default class AddQueryToQueue {
     @inject(TYPES.Services.GetSongs) private readonly getSongs: GetSongs,
     @inject(TYPES.Managers.Player)
     private readonly playerManager: PlayerManager,
-  ) { }
+  ) {}
 
   public async addToQueue({
     query,
@@ -193,12 +193,14 @@ export default class AddQueryToQueue {
 
     if (newSongs.length === 1) {
       await interaction.editReply(
-        `**${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''
+        `**${firstSong.title}** added to the${
+          addToFrontOfQueue ? ' front of the' : ''
         } queue${extraMsg}`,
       )
     } else {
       await interaction.editReply(
-        `**${firstSong.title}** and ${newSongs.length - 1
+        `**${firstSong.title}** and ${
+          newSongs.length - 1
         } other songs were added to the queue${extraMsg}`,
       )
     }

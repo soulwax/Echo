@@ -18,6 +18,6 @@ export const TYPES = {
 }
 
 export interface DownloadResult {
-  filePath: string;
-  videoUrl: string;
+  filePath: string
+  videoUrl: string
 }

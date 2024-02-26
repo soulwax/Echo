@@ -13,8 +13,8 @@ import Command from './index.js'
 const MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER = 8
 const MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER = 50
 // Convert the URL of the current module to a file path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const outputDir = path.join(__dirname, 'videos')
 
 @injectable()

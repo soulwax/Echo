@@ -377,7 +377,7 @@ export default class {
   }
 
   clear(): void {
-    const newQueue : any = []
+    const newQueue: any = []
 
     // Don't clear curently playing song
     const current = this.getCurrent()
