@@ -129,7 +129,7 @@
     "spotify-web-api-node": "^5.0.2",
     "sync-fetch": "^0.3.1",
     "tsx": "3.8.2",
-    "xbytes": "^1.7.0",
+    "xbytes": "^1.9.1",
     "ytsr": "^3.8.4"
   },
   "resolutions": {
