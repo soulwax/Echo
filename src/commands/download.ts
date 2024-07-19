@@ -1,13 +1,13 @@
-import { inject, injectable } from 'inversify'
-import { exec } from 'child_process'
 import { SlashCommandBuilder } from '@discordjs/builders'
-import { TYPES } from '../types.js'
-import Config from '../services/config.js'
-import { ChatInputCommandInteraction, AttachmentBuilder } from 'discord.js'
 import axios from 'axios'
+import { exec } from 'child_process'
+import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js'
 import fs from 'fs'
 import https from 'https'
+import { inject, injectable } from 'inversify'
 import path from 'path'
+import Config from '../services/config.js'
+import { TYPES } from '../types.js'
 import Command from './index.js'
 
 const outputDir = path.join('../../songs/')
@@ -42,6 +42,7 @@ export default class DownloadCommand implements Command {
   constructor(@inject(TYPES.Config) config: Config) {
     this.config = config
   }
+
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!
     const offset = interaction.options.getInteger('offset') ?? 0
