@@ -18,6 +18,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "typecheck": "tsc --noEmit",
+    "build": "tsc",
     "test": "npm run lint",
     "start": "npm run env:set-database-url -- tsx src/scripts/migrate-and-start.ts",
     "pm2": "pm2 start --name echoblossom npm -- start",
