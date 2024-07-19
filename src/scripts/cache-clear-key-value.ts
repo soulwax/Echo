@@ -1,9 +1,10 @@
-import ora from 'ora'
-import { prisma } from '../utils/db.js'
-;(async () => {
-  const spinner = ora('Clearing key value cache...').start()
+import ora from 'ora';
+import {prisma} from '../utils/db.js';
 
-  await prisma.keyValueCache.deleteMany({})
+(async () => {
+  const spinner = ora('Clearing key value cache...').start();
 
-  spinner.succeed('Key value cache cleared.')
-})()
+  await prisma.keyValueCache.deleteMany({});
+
+  spinner.succeed('Key value cache cleared.');
+})();
