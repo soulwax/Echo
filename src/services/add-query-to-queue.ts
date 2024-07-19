@@ -1,19 +1,22 @@
 /* eslint-disable complexity */
-import {ChatInputCommandInteraction, GuildMember} from 'discord.js';
-import {URL} from 'node:url';
-import {inject, injectable} from 'inversify';
+import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
+import { URL } from 'node:url';
+import { inject, injectable } from 'inversify';
 import shuffle from 'array-shuffle';
-import {TYPES} from '../types.js';
+import { TYPES } from '../types.js';
 import GetSongs from '../services/get-songs.js';
-import {MediaSource, SongMetadata, STATUS} from './player.js';
+import { MediaSource, SongMetadata, STATUS } from './player.js';
 import PlayerManager from '../managers/player.js';
-import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
-import {getMemberVoiceChannel, getMostPopularVoiceChannel} from '../utils/channels.js';
-import {getGuildSettings} from '../utils/get-guild-settings.js';
-import {SponsorBlock} from 'sponsorblock-api';
+import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {
+  getMemberVoiceChannel,
+  getMostPopularVoiceChannel,
+} from '../utils/channels.js';
+import { getGuildSettings } from '../utils/get-guild-settings.js';
+import { SponsorBlock } from 'sponsorblock-api';
 import Config from './config.js';
 import KeyValueCacheProvider from './key-value-cache.js';
-import {ONE_HOUR_IN_SECONDS} from '../utils/constants.js';
+import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js';
 
 @injectable()
 export default class AddQueryToQueue {
@@ -22,10 +25,13 @@ export default class AddQueryToQueue {
   private readonly sponsorBlockTimeoutDelay;
   private readonly cache: KeyValueCacheProvider;
 
-  constructor(@inject(TYPES.Services.GetSongs) private readonly getSongs: GetSongs,
-    @inject(TYPES.Managers.Player) private readonly playerManager: PlayerManager,
+  constructor(
+    @inject(TYPES.Services.GetSongs) private readonly getSongs: GetSongs,
+    @inject(TYPES.Managers.Player)
+    private readonly playerManager: PlayerManager,
     @inject(TYPES.Config) private readonly config: Config,
-    @inject(TYPES.KeyValueCache) cache: KeyValueCacheProvider) {
+    @inject(TYPES.KeyValueCache) cache: KeyValueCacheProvider,
+  ) {
     this.sponsorBlockTimeoutDelay = config.SPONSORBLOCK_TIMEOUT;
     this.sponsorBlock = config.ENABLE_SPONSORBLOCK
       ? new SponsorBlock('muse-sb-integration') // UserID matters only for submissions
@@ -52,13 +58,15 @@ export default class AddQueryToQueue {
     const player = this.playerManager.get(guildId);
     const wasPlayingSong = player.getCurrent() !== null;
 
-    const [targetVoiceChannel] = getMemberVoiceChannel(interaction.member as GuildMember) ?? getMostPopularVoiceChannel(interaction.guild!);
+    const [targetVoiceChannel] =
+      getMemberVoiceChannel(interaction.member as GuildMember) ??
+      getMostPopularVoiceChannel(interaction.guild!);
 
     const settings = await getGuildSettings(guildId);
 
-    const {playlistLimit, queueAddResponseEphemeral} = settings;
+    const { playlistLimit, queueAddResponseEphemeral } = settings;
 
-    await interaction.deferReply({ephemeral: queueAddResponseEphemeral});
+    await interaction.deferReply({ ephemeral: queueAddResponseEphemeral });
 
     let newSongs: SongMetadata[] = [];
     let extraMsg = '';
@@ -79,18 +87,34 @@ export default class AddQueryToQueue {
         // YouTube source
         if (url.searchParams.get('list')) {
           // YouTube playlist
-          newSongs.push(...await this.getSongs.youtubePlaylist(url.searchParams.get('list')!, shouldSplitChapters));
+          newSongs.push(
+            ...(await this.getSongs.youtubePlaylist(
+              url.searchParams.get('list')!,
+              shouldSplitChapters,
+            )),
+          );
         } else {
-          const songs = await this.getSongs.youtubeVideo(url.href, shouldSplitChapters);
+          const songs = await this.getSongs.youtubeVideo(
+            url.href,
+            shouldSplitChapters,
+          );
 
           if (songs) {
             newSongs.push(...songs);
           } else {
-            throw new Error('that doesn\'t exist');
+            throw new Error("that doesn't exist");
           }
         }
-      } else if (url.protocol === 'spotify:' || url.host === 'open.spotify.com') {
-        const [convertedSongs, nSongsNotFound, totalSongs] = await this.getSongs.spotifySource(query, playlistLimit, shouldSplitChapters);
+      } else if (
+        url.protocol === 'spotify:' ||
+        url.host === 'open.spotify.com'
+      ) {
+        const [convertedSongs, nSongsNotFound, totalSongs] =
+          await this.getSongs.spotifySource(
+            query,
+            playlistLimit,
+            shouldSplitChapters,
+          );
 
         if (totalSongs > playlistLimit) {
           extraMsg = `a random sample of ${playlistLimit} songs was taken`;
@@ -115,17 +139,20 @@ export default class AddQueryToQueue {
         if (song) {
           newSongs.push(song);
         } else {
-          throw new Error('that doesn\'t exist');
+          throw new Error("that doesn't exist");
         }
       }
     } catch (_: unknown) {
       // Not a URL, must search YouTube
-      const songs = await this.getSongs.youtubeVideoSearch(query, shouldSplitChapters);
+      const songs = await this.getSongs.youtubeVideoSearch(
+        query,
+        shouldSplitChapters,
+      );
 
       if (songs) {
         newSongs.push(...songs);
       } else {
-        throw new Error('that doesn\'t exist');
+        throw new Error("that doesn't exist");
       }
     }
 
@@ -138,15 +165,20 @@ export default class AddQueryToQueue {
     }
 
     if (this.config.ENABLE_SPONSORBLOCK) {
-      newSongs = await Promise.all(newSongs.map(this.skipNonMusicSegments.bind(this)));
+      newSongs = await Promise.all(
+        newSongs.map(this.skipNonMusicSegments.bind(this)),
+      );
     }
 
     newSongs.forEach(song => {
-      player.add({
-        ...song,
-        addedInChannelId: interaction.channel!.id,
-        requestedBy: interaction.member!.user.id,
-      }, {immediate: addToFrontOfQueue ?? false});
+      player.add(
+        {
+          ...song,
+          addedInChannelId: interaction.channel!.id,
+          requestedBy: interaction.member!.user.id,
+        },
+        { immediate: addToFrontOfQueue ?? false },
+      );
     });
 
     const firstSong = newSongs[0];
@@ -193,41 +225,64 @@ export default class AddQueryToQueue {
     }
 
     if (newSongs.length === 1) {
-      await interaction.editReply(`u betcha, **${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''} queue${skipCurrentTrack ? 'and current track skipped' : ''}${extraMsg}`);
+      await interaction.editReply(
+        `u betcha, **${firstSong.title}** added to the${
+          addToFrontOfQueue ? ' front of the' : ''
+        } queue${
+          skipCurrentTrack ? 'and current track skipped' : ''
+        }${extraMsg}`,
+      );
     } else {
-      await interaction.editReply(`u betcha, **${firstSong.title}** and ${newSongs.length - 1} other songs were added to the queue${skipCurrentTrack ? 'and current track skipped' : ''}${extraMsg}`);
+      await interaction.editReply(
+        `u betcha, **${firstSong.title}** and ${
+          newSongs.length - 1
+        } other songs were added to the queue${
+          skipCurrentTrack ? 'and current track skipped' : ''
+        }${extraMsg}`,
+      );
     }
   }
 
   private async skipNonMusicSegments(song: SongMetadata) {
-    if (!this.sponsorBlock
-          || (this.sponsorBlockDisabledUntil && new Date() < this.sponsorBlockDisabledUntil)
-          || song.source !== MediaSource.Youtube
-          || !song.url) {
+    if (
+      !this.sponsorBlock ||
+      (this.sponsorBlockDisabledUntil &&
+        new Date() < this.sponsorBlockDisabledUntil) ||
+      song.source !== MediaSource.Youtube ||
+      !song.url
+    ) {
       return song;
     }
 
     try {
-      const segments = await this.cache.wrap(
-        async () => this.sponsorBlock?.getSegments(song.url, ['music_offtopic']),
-        {
-          key: song.url, // Value is too short for hashing
-          expiresIn: ONE_HOUR_IN_SECONDS,
-        },
-      ) ?? [];
+      const segments =
+        (await this.cache.wrap(
+          async () =>
+            this.sponsorBlock?.getSegments(song.url, ['music_offtopic']),
+          {
+            key: song.url, // Value is too short for hashing
+            expiresIn: ONE_HOUR_IN_SECONDS,
+          },
+        )) ?? [];
       const skipSegments = segments
         .sort((a, b) => a.startTime - b.startTime)
-        .reduce((acc: Array<{startTime: number; endTime: number}>, {startTime, endTime}) => {
-          const previousSegment = acc[acc.length - 1];
-          // If segments overlap merge
-          if (previousSegment && previousSegment.endTime > startTime) {
-            acc[acc.length - 1].endTime = endTime;
-          } else {
-            acc.push({startTime, endTime});
-          }
+        .reduce(
+          (
+            acc: Array<{ startTime: number; endTime: number }>,
+            { startTime, endTime },
+          ) => {
+            const previousSegment = acc[acc.length - 1];
+            // If segments overlap merge
+            if (previousSegment && previousSegment.endTime > startTime) {
+              acc[acc.length - 1].endTime = endTime;
+            } else {
+              acc.push({ startTime, endTime });
+            }
 
-          return acc;
-        }, []);
+            return acc;
+          },
+          [],
+        );
 
       const intro = skipSegments[0];
       const outro = skipSegments.at(-1);
@@ -243,7 +298,10 @@ export default class AddQueryToQueue {
       return song;
     } catch (e) {
       if (!(e instanceof Error)) {
-        console.error('Unexpected event occurred while fetching skip segments : ', e);
+        console.error(
+          'Unexpected event occurred while fetching skip segments : ',
+          e,
+        );
         return song;
       }
 
@@ -254,7 +312,9 @@ export default class AddQueryToQueue {
 
       if (e.message.includes('504')) {
         // Stop fetching SponsorBlock data when servers are down
-        this.sponsorBlockDisabledUntil = new Date(new Date().getTime() + (this.sponsorBlockTimeoutDelay * 60_000));
+        this.sponsorBlockDisabledUntil = new Date(
+          new Date().getTime() + this.sponsorBlockTimeoutDelay * 60_000,
+        );
       }
 
       return song;
