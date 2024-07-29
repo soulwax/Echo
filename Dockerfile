@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     libgdbm-dev libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev \
     tk-dev libffi-dev && \
     rm -rf /var/lib/apt/lists/*
-    
+
 # Install Node.js dependencies
 FROM base AS dependencies
 WORKDIR /usr/app
@@ -62,9 +62,11 @@ WORKDIR /usr/app
 COPY --from=dependencies /usr/app/node_modules node_modules
 COPY . .
 
-# Install yt-dlp
+# Install yt-dlp && ffmpeg
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
 RUN chmod a+rx /usr/local/bin/yt-dlp
+RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get clean
 
 # Check if yt-dlp is executable and working
 ENV PATH="/usr/local/bin:${PATH}"
