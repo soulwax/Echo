@@ -15,9 +15,9 @@ export const TYPES = {
     YoutubeAPI: Symbol('YoutubeAPI'),
     SpotifyAPI: Symbol('SpotifyAPI'),
   },
-}
+};
 
 export interface DownloadResult {
-  filePath: string
-  videoUrl: string
+  filePath: string;
+  videoUrl: string;
 }

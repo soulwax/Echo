@@ -1,10 +1,10 @@
+import { ActivityType, PresenceStatusData } from 'discord.js'
 import dotenv from 'dotenv'
-import 'reflect-metadata'
 import { injectable } from 'inversify'
 import path from 'path'
-import xbytes from 'xbytes'
+import 'reflect-metadata'
 import { ConditionalKeys } from 'type-fest'
-import { ActivityType, PresenceStatusData } from 'discord.js'
+import xbytes from 'xbytes'
 dotenv.config()
 
 export const DATA_DIR = path.resolve(
@@ -24,6 +24,8 @@ const CONFIG_MAP = {
   BOT_ACTIVITY_TYPE: process.env.BOT_ACTIVITY_TYPE ?? 'LISTENING',
   BOT_ACTIVITY_URL: process.env.BOT_ACTIVITY_URL ?? '',
   BOT_ACTIVITY: process.env.BOT_ACTIVITY ?? 'music',
+  ENABLE_SPONSORBLOCK: process.env.ENABLE_SPONSORBLOCK === 'true',
+  SPONSORBLOCK_TIMEOUT: process.env.ENABLE_SPONSORBLOCK ?? 5,
   DOWNLOAD_URL: process.env.DOWNLOAD_URL ?? '',
   DOWNLOAD_KEY: process.env.DOWNLOAD_KEY ?? '',
 } as const
@@ -49,6 +51,8 @@ export default class Config {
   readonly BOT_ACTIVITY_TYPE!: Exclude<ActivityType, ActivityType.Custom>
   readonly BOT_ACTIVITY_URL!: string
   readonly BOT_ACTIVITY!: string
+  readonly ENABLE_SPONSORBLOCK!: boolean
+  readonly SPONSORBLOCK_TIMEOUT!: number
   readonly DOWNLOAD_URL!: string
   readonly DOWNLOAD_KEY!: string
 
@@ -72,6 +76,7 @@ export default class Config {
       if (typeof value === 'number') {
         this[key as ConditionalKeys<typeof CONFIG_MAP, number>] = value
       } else if (typeof value === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ;(this as any)[key] = value.trim()
       } else if (typeof value === 'boolean') {
         this[key as ConditionalKeys<typeof CONFIG_MAP, boolean>] = value

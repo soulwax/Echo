@@ -47,6 +47,7 @@ export default class YoutubeDownloadCommand implements Command {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir)
     }
+
     this.checkYtDlpInstalled().then(installed => {
       if (!installed) {
         console.error(
@@ -153,8 +154,8 @@ export default class YoutubeDownloadCommand implements Command {
             targetSizeMB > 25
               ? 'iw/2:ih/2'
               : targetSizeMB < 12
-                ? 'iw/4:ih/4'
-                : '' // Adjust scale based on target size
+              ? 'iw/4:ih/4'
+              : '' // Adjust scale based on target size
           const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
           const crfValue = targetSizeMB > 25 ? '23' : '28' // Lower CRF value for better quality, but higher file size
           const preset = 'slow' // Slower presets provide better compression
@@ -221,6 +222,7 @@ export default class YoutubeDownloadCommand implements Command {
     if (!firstResult || !('id' in firstResult)) {
       throw new Error('No video found.')
     }
+
     return firstResult.id
   }
 }
