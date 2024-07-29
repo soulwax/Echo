@@ -10,6 +10,7 @@
       Made with ❤️ by <a href="https://github.com/soulwax">soul</a>
       </p>
   </p>
+   
 
 Echo is a self-hosted no bs discord bot for music playback. It supports youtube and spotify playback *in channel* and has a queue system. It also supports saving favorites and, if you have a **legal** download backend, you can /download embed songs from purely a query.
 
