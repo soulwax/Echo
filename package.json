@@ -17,6 +17,7 @@
   "scripts": {
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "test": "npm run lint",
@@ -30,7 +31,6 @@
     "prisma:generate": "prisma generate",
     "env:set-database-url": "tsx src/scripts/run-with-database-url.ts",
     "release": "release-it",
-    "build": "tsc",
     "postinstall": "patch-package"
   },
   "devDependencies": {
@@ -51,8 +51,11 @@
     "eslint-config-xo": "^0.39.0",
     "eslint-config-xo-typescript": "^0.44.0",
     "eslint-plugin-import": "2.29.1",
-    "husky": "^4.3.8",
-    "prisma": "4.16.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-react": "^7.35.0",
+    "husky": "^9.1.4",
+    "prettier": "^3.3.3",
+    "prisma": "^5.17.0",
     "release-it": "^14.11.8",
     "type-fest": "^2.12.0",
     "typescript": "^4.6.4"
@@ -91,9 +94,9 @@
     "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "1.0.1",
     "@discordjs/voice": "0.11.0",
-    "@distube/ytsr": "^2.0.0",
     "@distube/ytdl-core": "^4.13.5",
-    "@prisma/client": "4.16.0",
+    "@distube/ytsr": "^2.0.0",
+    "@prisma/client": "^5.17.0",
     "@types/libsodium-wrappers": "^0.7.9",
     "array-shuffle": "^3.0.0",
     "debug": "^4.3.3",
