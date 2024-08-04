@@ -21,10 +21,10 @@ import { MediaSource, QueuedPlaylist, SongMetadata } from './player.js';
 // );
 
 // Generate a URL for the user to log in and authorize the bot
-const authorizeUrl = oauth2Client.generateAuthUrl({
-  access_type: 'offline',
-  scope: ['https://www.googleapis.com/auth/youtube.readonly'],
-});
+// const authorizeUrl = oauth2Client.generateAuthUrl({
+//   access_type: 'offline',
+//   scope: ['https://www.googleapis.com/auth/youtube.readonly'],
+// });
 
 interface VideoDetailsResponse {
   id: string;
