@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Base image with Node.js
 FROM node:18.7.0-slim AS base
 
@@ -60,13 +61,65 @@ RUN if [ ! -x /usr/local/bin/yt-dlp ]; then echo "yt-dlp not executable"; exit 1
 RUN yt-dlp --version
 
 # Set environment variables
+=======
+FROM node:18-bullseye-slim AS base
+
+# openssl will be a required package if base is updated to 18.16+ due to node:*-slim base distro change
+# https://github.com/prisma/prisma/issues/19729#issuecomment-1591270599
+# Install ffmpeg
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    ffmpeg \
+    tini \
+    openssl \
+    ca-certificates \
+    && apt-get autoclean \
+    && apt-get autoremove \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+FROM base AS dependencies
+
+WORKDIR /usr/app
+
+COPY package.json .
+COPY yarn.lock .
+
+RUN yarn install --prod
+RUN cp -R node_modules /usr/app/prod_node_modules
+
+RUN yarn install
+
+FROM dependencies AS builder
+
+COPY . .
+
+# Install yt-dlp && ffmpeg
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+RUN chmod a+rx /usr/local/bin/yt-dlp
+RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get clean
+
+# Run tsc build
+RUN yarn prisma generate
+RUN yarn build
+
+# Only keep what's necessary to run
+FROM base AS runner
+
+WORKDIR /usr/app
+
+COPY --from=builder /usr/app/dist ./dist
+COPY --from=dependencies /usr/app/prod_node_modules node_modules
+COPY --from=builder /usr/app/node_modules/.prisma/client ./node_modules/.prisma/client
+
+COPY . .
+
+>>>>>>> staging
 ARG COMMIT_HASH=unknown
 ARG BUILD_DATE=unknown
-ENV DATA_DIR=/data
-ENV NODE_ENV=production
-ENV COMMIT_HASH=$COMMIT_HASH
-ENV BUILD_DATE=$BUILD_DATE
 
+<<<<<<< HEAD
 # Expose the port the app runs on
 EXPOSE 3071
 
@@ -76,3 +129,11 @@ COPY . .
 
 # Set the startup command
 CMD ["tini", "--", "yarn", "start"]
+=======
+ENV DATA_DIR /data
+ENV NODE_ENV production
+ENV COMMIT_HASH $COMMIT_HASH
+ENV BUILD_DATE $BUILD_DATE
+
+CMD ["tini", "--", "node", "--enable-source-maps", "dist/scripts/migrate-and-start.js"]
+>>>>>>> staging
