@@ -11,7 +11,7 @@
       </p>
   </p>
 
-Echo is a self-hosted no bs discord bot for music playback. It supports youtube and spotify playback *in channel* and has a queue system. It also supports saving favorites and, if you have a **legal** download backend, you can /download embed songs from purely a query.
+Echo is a self-hosted no bs discord bot for music playback. It supports youtube **AND** spotify playback *in channel* and has a queue system. It also supports saving favorites, setting the volume by command, and many more music related (and even video) features and, if you have a **legal** download backend, you can /download embed songs from purely a query.
 
 ## Features
 
@@ -20,6 +20,8 @@ Echo is a self-hosted no bs discord bot for music playback. It supports youtube 
 - **Favorites**: Save your favorite tracks for quick access.
 - **Advanced Controls**: Control playback with commands like seek, loop, and shuffle.
 - **Docker Support**: Easily deploy and run Echo in Docker containers for consistent and isolated environments.
+- **Download**: Download songs from an endpoint you provide at your own risk.
+- **Youtube**: Pull youtube videos with a command.
 
 ## Getting Started
 
