@@ -4958,10 +4958,10 @@ sponsorblock-api@^0.2.4:
   dependencies:
     axios "^1.4.0"
 
-spotify-uri@^3.0.2:
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/spotify-uri/-/spotify-uri-3.0.4.tgz#3925951f03043bbb344219b471e37bc911ae726d"
-  integrity sha512-wtofZNzMjPXR1KD2/gw8F/7ng1QwxpfFbrVgcRaAh0oSJ6ZGC5ln+IBptIRuti1dYGOxJqEIvDc88ctLvTSWiQ==
+spotify-uri@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/spotify-uri/-/spotify-uri-4.1.0.tgz#d1286b1922055e2b0e37b773ef2bff2c40e71010"
+  integrity sha512-SFpBt8pQqO7DOFBsdUjv3GxGZAKYP7UqcTflfE7h3YL1lynl/6Motq7NERoJJR8eF9kXQRSpcdMmV5ou84rbng==
 
 spotify-web-api-node@^5.0.2:
   version "5.0.2"
