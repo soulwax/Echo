@@ -1,16 +1,18 @@
-import {ChatInputCommandInteraction} from 'discord.js';
-import {SlashCommandBuilder} from '@discordjs/builders';
-import {TYPES} from '../types.js';
-import {inject, injectable} from 'inversify';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { inject, injectable } from 'inversify';
 import PlayerManager from '../managers/player.js';
-import {STATUS} from '../services/player.js';
+import { STATUS } from '../services/player.js';
+import { TYPES } from '../types.js';
 import Command from './index.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('stop')
-    .setDescription('stop playback, disconnect, and clear all songs in the queue');
+    .setDescription(
+      'stop playback, disconnect, and clear all songs in the queue',
+    );
 
   public requiresVC = true;
 
@@ -32,6 +34,6 @@ export default class implements Command {
     }
 
     player.stop();
-    await interaction.reply('u betcha, stopped');
+    await interaction.reply('Stopped playback and cleared the queue');
   }
 }

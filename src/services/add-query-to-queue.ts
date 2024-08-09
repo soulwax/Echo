@@ -1,22 +1,22 @@
 /* eslint-disable complexity */
-import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
-import { URL } from 'node:url';
-import { inject, injectable } from 'inversify';
 import shuffle from 'array-shuffle';
-import { TYPES } from '../types.js';
-import GetSongs from '../services/get-songs.js';
-import { MediaSource, SongMetadata, STATUS } from './player.js';
+import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
+import { inject, injectable } from 'inversify';
+import { URL } from 'node:url';
+import { SponsorBlock } from 'sponsorblock-api';
 import PlayerManager from '../managers/player.js';
+import GetSongs from '../services/get-songs.js';
+import { TYPES } from '../types.js';
 import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
 import {
   getMemberVoiceChannel,
   getMostPopularVoiceChannel,
 } from '../utils/channels.js';
+import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js';
 import { getGuildSettings } from '../utils/get-guild-settings.js';
-import { SponsorBlock } from 'sponsorblock-api';
 import Config from './config.js';
 import KeyValueCacheProvider from './key-value-cache.js';
-import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js';
+import { MediaSource, SongMetadata, STATUS } from './player.js';
 
 @injectable()
 export default class AddQueryToQueue {
@@ -226,7 +226,7 @@ export default class AddQueryToQueue {
 
     if (newSongs.length === 1) {
       await interaction.editReply(
-        `u betcha, **${firstSong.title}** added to the${
+        `Let's go, **${firstSong.title}** added to the${
           addToFrontOfQueue ? ' front of the' : ''
         } queue${
           skipCurrentTrack ? 'and current track skipped' : ''
@@ -234,7 +234,7 @@ export default class AddQueryToQueue {
       );
     } else {
       await interaction.editReply(
-        `u betcha, **${firstSong.title}** and ${
+        `Let's go, **${firstSong.title}** and ${
           newSongs.length - 1
         } other songs were added to the queue${
           skipCurrentTrack ? 'and current track skipped' : ''
