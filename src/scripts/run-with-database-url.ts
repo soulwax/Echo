@@ -1,6 +1,6 @@
+import { execa } from 'execa'
 import { DATA_DIR } from '../services/config.js'
 import createDatabaseUrl from '../utils/create-database-url.js'
-import { execa } from 'execa';
 
 (async () => {
   await execa(process.argv[2], process.argv.slice(3), {
