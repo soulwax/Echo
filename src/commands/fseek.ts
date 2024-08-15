@@ -1,21 +1,25 @@
-import {ChatInputCommandInteraction} from 'discord.js';
-import {SlashCommandBuilder} from '@discordjs/builders';
-import {TYPES} from '../types.js';
-import {inject, injectable} from 'inversify';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { inject, injectable } from 'inversify';
 import PlayerManager from '../managers/player.js';
-import Command from './index.js';
-import {prettyTime} from '../utils/time.js';
+import { TYPES } from '../types.js';
 import durationStringToSeconds from '../utils/duration-string-to-seconds.js';
+import { prettyTime } from '../utils/time.js';
+import Command from './index.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('fseek')
     .setDescription('seek forward in the current song')
-    .addStringOption(option => option
-      .setName('time')
-      .setDescription('an interval expression or number of seconds (1m, 30s, 100)')
-      .setRequired(true));
+    .addStringOption(option =>
+      option
+        .setName('time')
+        .setDescription(
+          'an interval expression or number of seconds (1m, 30s, 100)',
+        )
+        .setRequired(true),
+    );
 
   public requiresVC = true;
 
@@ -25,7 +29,9 @@ export default class implements Command {
     this.playerManager = playerManager;
   }
 
-  public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  public async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
     const player = this.playerManager.get(interaction.guild!.id);
 
     const currentSong = player.getCurrent();
@@ -35,7 +41,7 @@ export default class implements Command {
     }
 
     if (currentSong.isLive) {
-      throw new Error('can\'t seek in a livestream');
+      throw new Error("can't seek in a livestream");
     }
 
     const seekValue = interaction.options.getString('time');
@@ -47,14 +53,13 @@ export default class implements Command {
     const seekTime = durationStringToSeconds(seekValue);
 
     if (seekTime + player.getPosition() > currentSong.length) {
-      throw new Error('can\'t seek past the end of the song');
+      throw new Error("can't seek past the end of the song");
     }
 
-    await Promise.all([
-      player.forwardSeek(seekTime),
-      interaction.deferReply(),
-    ]);
+    await Promise.all([player.forwardSeek(seekTime), interaction.deferReply()]);
 
-    await interaction.editReply(`👍 seeked to ${prettyTime(player.getPosition())}`);
+    await interaction.editReply(
+      `👍 seeked to ${prettyTime(player.getPosition())}`,
+    );
   }
 }

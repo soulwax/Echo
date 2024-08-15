@@ -1,8 +1,8 @@
-import {inject, injectable} from 'inversify';
-import {ChatInputCommandInteraction} from 'discord.js';
-import {SlashCommandBuilder} from '@discordjs/builders';
-import {TYPES} from '../types.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { inject, injectable } from 'inversify';
 import PlayerManager from '../managers/player.js';
+import { TYPES } from '../types.js';
 import Command from './index.js';
 
 @injectable()

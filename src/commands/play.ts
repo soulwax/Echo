@@ -1,38 +1,49 @@
-import {AutocompleteInteraction, ChatInputCommandInteraction} from 'discord.js';
-import {URL} from 'url';
-import {SlashCommandBuilder} from '@discordjs/builders';
-import {inject, injectable} from 'inversify';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import {
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+} from 'discord.js';
+import { inject, injectable } from 'inversify';
 import Spotify from 'spotify-web-api-node';
-import Command from './index.js';
-import {TYPES} from '../types.js';
-import ThirdParty from '../services/third-party.js';
-import getYouTubeAndSpotifySuggestionsFor from '../utils/get-youtube-and-spotify-suggestions-for.js';
-import KeyValueCacheProvider from '../services/key-value-cache.js';
-import {ONE_HOUR_IN_SECONDS} from '../utils/constants.js';
+import { URL } from 'url';
 import AddQueryToQueue from '../services/add-query-to-queue.js';
+import KeyValueCacheProvider from '../services/key-value-cache.js';
+import ThirdParty from '../services/third-party.js';
+import { TYPES } from '../types.js';
+import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js';
+import getYouTubeAndSpotifySuggestionsFor from '../utils/get-youtube-and-spotify-suggestions-for.js';
+import Command from './index.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('play')
     .setDescription('play a song')
-    .addStringOption(option => option
-      .setName('query')
-      .setDescription('YouTube URL, Spotify URL, or search query')
-      .setAutocomplete(true)
-      .setRequired(true))
-    .addBooleanOption(option => option
-      .setName('immediate')
-      .setDescription('add track to the front of the queue'))
-    .addBooleanOption(option => option
-      .setName('shuffle')
-      .setDescription('shuffle the input if you\'re adding multiple tracks'))
-    .addBooleanOption(option => option
-      .setName('split')
-      .setDescription('if a track has chapters, split it'))
-    .addBooleanOption(option => option
-      .setName('skip')
-      .setDescription('skip the currently playing track'));
+    .addStringOption(option =>
+      option
+        .setName('query')
+        .setDescription('YouTube URL, Spotify URL, or search query')
+        .setAutocomplete(true)
+        .setRequired(true),
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('immediate')
+        .setDescription('add track to the front of the queue'),
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('shuffle')
+        .setDescription("shuffle the input if you're adding multiple tracks"),
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('split')
+        .setDescription('if a track has chapters, split it'),
+    )
+    .addBooleanOption(option =>
+      option.setName('skip').setDescription('skip the currently playing track'),
+    );
 
   public requiresVC = true;
 
@@ -40,13 +51,19 @@ export default class implements Command {
   private readonly cache: KeyValueCacheProvider;
   private readonly addQueryToQueue: AddQueryToQueue;
 
-  constructor(@inject(TYPES.ThirdParty) thirdParty: ThirdParty, @inject(TYPES.KeyValueCache) cache: KeyValueCacheProvider, @inject(TYPES.Services.AddQueryToQueue) addQueryToQueue: AddQueryToQueue) {
+  constructor(
+    @inject(TYPES.ThirdParty) thirdParty: ThirdParty,
+    @inject(TYPES.KeyValueCache) cache: KeyValueCacheProvider,
+    @inject(TYPES.Services.AddQueryToQueue) addQueryToQueue: AddQueryToQueue,
+  ) {
     this.spotify = thirdParty.spotify;
     this.cache = cache;
     this.addQueryToQueue = addQueryToQueue;
   }
 
-  public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  public async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
     const query = interaction.options.getString('query')!;
 
     await this.addQueryToQueue.addToQueue({
@@ -59,7 +76,9 @@ export default class implements Command {
     });
   }
 
-  public async handleAutocompleteInteraction(interaction: AutocompleteInteraction): Promise<void> {
+  public async handleAutocompleteInteraction(
+    interaction: AutocompleteInteraction,
+  ): Promise<void> {
     const query = interaction.options.getString('query')?.trim();
 
     if (!query || query.length === 0) {
@@ -83,7 +102,8 @@ export default class implements Command {
       {
         expiresIn: ONE_HOUR_IN_SECONDS,
         key: `autocomplete:${query}`,
-      });
+      },
+    );
 
     await interaction.respond(suggestions);
   }

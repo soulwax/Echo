@@ -1,21 +1,21 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { exec } from 'child_process'
-import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js'
-import fs from 'fs'
-import { inject, injectable } from 'inversify'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import ytsr from 'ytsr'
-import Config from '../services/config.js'
-import { DownloadResult, TYPES } from '../types.js'
-import Command from './index.js'
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { exec } from 'child_process';
+import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js';
+import fs from 'fs';
+import { inject, injectable } from 'inversify';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import ytsr from 'ytsr';
+import Config from '../services/config.js';
+import { DownloadResult, TYPES } from '../types.js';
+import Command from './index.js';
 
-const MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER = 8
-const MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER = 50
+const MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER = 8;
+const MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER = 50;
 // Convert the URL of the current module to a file path
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const outputDir = path.join(__dirname, 'videos')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const outputDir = path.join(__dirname, 'videos');
 
 @injectable()
 export default class YoutubeDownloadCommand implements Command {
@@ -37,98 +37,98 @@ export default class YoutubeDownloadCommand implements Command {
           { name: 'Best', value: 'bestvideo+bestaudio/best' },
           { name: 'Normal', value: 'worstvideo+worstaudio/worst' },
         ),
-    )
+    );
 
-  private readonly config: Config
+  private readonly config: Config;
 
   constructor(@inject(TYPES.Config) config: Config) {
-    this.config = config
+    this.config = config;
     // Create the output directory if it doesn't exist
     if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir)
+      fs.mkdirSync(outputDir);
     }
 
     this.checkYtDlpInstalled().then(installed => {
       if (!installed) {
         console.error(
           'yt-dlp is not installed. Please install it from a package or trustworthy source.',
-        )
+        );
       }
-    })
+    });
   }
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const query = interaction.options.getString('query')!
+    const query = interaction.options.getString('query')!;
     const quality =
-      interaction.options.getString('quality') || 'worstvideo+worstaudio/worst'
+      interaction.options.getString('quality') || 'worstvideo+worstaudio/worst';
 
-    await interaction.deferReply()
+    await interaction.deferReply();
 
     try {
       const { videoUrl, filePath } = await this.downloadFileWithYtDlp(
         query,
         quality,
-      )
+      );
 
       const qualityValue =
         quality === 'bestvideo+bestaudio/best'
           ? MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER
-          : MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER
-      await this.compressVideo(filePath, qualityValue)
+          : MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER;
+      await this.compressVideo(filePath, qualityValue);
 
       if (this.isFileSizeAcceptable(filePath, qualityValue)) {
-        const fileAttachment = new AttachmentBuilder(filePath)
+        const fileAttachment = new AttachmentBuilder(filePath);
         await interaction.editReply({
           content: 'Download completed.',
           files: [fileAttachment],
-        })
+        });
       } else {
         await interaction.editReply({
           content: `The video file is too large for this Discord server. Here's the direct YouTube link: ${videoUrl}`,
-        })
+        });
       }
     } catch (error) {
-      console.error(error)
-      const videoUrl = await this.getFallbackYoutubeLink(query)
+      console.error(error);
+      const videoUrl = await this.getFallbackYoutubeLink(query);
       await interaction.editReply({
         content: `Server probably not fit fore meaningful compression sizes. Here's a direct link instead: ${videoUrl}`,
-      })
+      });
     }
   }
 
   private async checkYtDlpInstalled(): Promise<boolean> {
     return new Promise(resolve => {
       exec('yt-dlp --version', error => {
-        resolve(!error)
-      })
-    })
+        resolve(!error);
+      });
+    });
   }
 
   private async downloadFileWithYtDlp(
     query: string,
     quality?: string,
   ): Promise<DownloadResult> {
-    const ytDlpQuality = quality || 'bestvideo+bestaudio/best'
-    const ytSearchQuery = `ytsearch:${query}`
-    const safeQuery = query.replace(/[^a-zA-Z0-9]/g, '_') // Sanitize query for filename
-    const ytFilePath = path.join(outputDir, safeQuery)
-    const outputTemplate = `${ytFilePath}.%(ext)s` // Include extension in output template
+    const ytDlpQuality = quality || 'bestvideo+bestaudio/best';
+    const ytSearchQuery = `ytsearch:${query}`;
+    const safeQuery = query.replace(/[^a-zA-Z0-9]/g, '_'); // Sanitize query for filename
+    const ytFilePath = path.join(outputDir, safeQuery);
+    const outputTemplate = `${ytFilePath}.%(ext)s`; // Include extension in output template
 
     return new Promise((resolve, reject) => {
       exec(
         `yt-dlp -f ${ytDlpQuality} --get-url --merge-output-format mp4 -o "${outputTemplate}" "${ytSearchQuery}"`,
         async (error, stdout, stderr) => {
           if (error) {
-            console.error('Error downloading from YouTube:', stderr)
-            reject(new Error('Failed to download video.'))
+            console.error('Error downloading from YouTube:', stderr);
+            reject(new Error('Failed to download video.'));
           } else {
-            const videoUrl = stdout.trim().split('\n')[0] // Extract the direct video URL
-            const mp4FilePath = `${ytFilePath}.mp4` // Define the mp4 file path
-            resolve({ filePath: mp4FilePath, videoUrl })
+            const videoUrl = stdout.trim().split('\n')[0]; // Extract the direct video URL
+            const mp4FilePath = `${ytFilePath}.mp4`; // Define the mp4 file path
+            resolve({ filePath: mp4FilePath, videoUrl });
           }
         },
-      )
-    })
+      );
+    });
   }
 
   private async compressVideo(
@@ -140,25 +140,28 @@ export default class YoutubeDownloadCommand implements Command {
         `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`,
         (error, stdout, stderr) => {
           if (error) {
-            console.error('Error getting video duration:', stderr)
-            reject(new Error('Failed to get video duration.'))
-            return
+            console.error('Error getting video duration:', stderr);
+            reject(new Error('Failed to get video duration.'));
+            return;
           }
 
-          const durationInSeconds = parseFloat(stdout)
-          const targetSize = targetSizeMB * 8 * 1024 * 1024 // Convert target size to bits
-          const bitrate = Math.floor(targetSize / durationInSeconds) // Calculate target bitrate
+          const durationInSeconds = parseFloat(stdout);
+          const targetSize = targetSizeMB * 8 * 1024 * 1024; // Convert target size to bits
+          const bitrate = Math.floor(targetSize / durationInSeconds); // Calculate target bitrate
 
           // For better quality, I now use a two-pass encoding process with adjusted CRF (Constant Rate Factor) and preset
           const scale =
             targetSizeMB > 25
               ? 'iw/2:ih/2'
               : targetSizeMB < 12
-              ? 'iw/4:ih/4'
-              : '' // Adjust scale based on target size
-          const compressedFilePath = filePath.replace('.mp4', '_compressed.mp4')
-          const crfValue = targetSizeMB > 25 ? '23' : '28' // Lower CRF value for better quality, but higher file size
-          const preset = 'slow' // Slower presets provide better compression
+                ? 'iw/4:ih/4'
+                : ''; // Adjust scale based on target size
+          const compressedFilePath = filePath.replace(
+            '.mp4',
+            '_compressed.mp4',
+          );
+          const crfValue = targetSizeMB > 25 ? '23' : '28'; // Lower CRF value for better quality, but higher file size
+          const preset = 'slow'; // Slower presets provide better compression
 
           // First pass with CRF and preset settings
           exec(
@@ -168,9 +171,9 @@ export default class YoutubeDownloadCommand implements Command {
                 console.error(
                   'Error during first pass of compression:',
                   firstPassError,
-                )
-                reject(new Error('First pass compression failed.'))
-                return
+                );
+                reject(new Error('First pass compression failed.'));
+                return;
               }
 
               // Second pass
@@ -181,48 +184,48 @@ export default class YoutubeDownloadCommand implements Command {
                     console.error(
                       'Error during second pass of compression:',
                       compressStderr,
-                    )
-                    reject(new Error('Second pass compression failed.'))
+                    );
+                    reject(new Error('Second pass compression failed.'));
                   } else {
-                    fs.unlinkSync(filePath) // Delete the original file
-                    fs.renameSync(compressedFilePath, filePath) // Rename compressed file to original file name
-                    resolve()
+                    fs.unlinkSync(filePath); // Delete the original file
+                    fs.renameSync(compressedFilePath, filePath); // Rename compressed file to original file name
+                    resolve();
                   }
                 },
-              )
+              );
             },
-          )
+          );
         },
-      )
-    })
+      );
+    });
   }
 
   private isFileSizeAcceptable(filePath: string, maxSizeMB: number): boolean {
-    const stats = fs.statSync(filePath)
-    const fileSizeInBytes = stats.size
-    const maxSizeInBytes = maxSizeMB * 1024 * 1024
-    return fileSizeInBytes <= maxSizeInBytes
+    const stats = fs.statSync(filePath);
+    const fileSizeInBytes = stats.size;
+    const maxSizeInBytes = maxSizeMB * 1024 * 1024;
+    return fileSizeInBytes <= maxSizeInBytes;
   }
 
   private async getFallbackYoutubeLink(query: string): Promise<string> {
     try {
-      const ytidFromQuery = await this.extractFirstYoutubeIdFromSearch(query)
-      return `https://www.youtube.com/watch?v=${ytidFromQuery}`
+      const ytidFromQuery = await this.extractFirstYoutubeIdFromSearch(query);
+      return `https://www.youtube.com/watch?v=${ytidFromQuery}`;
     } catch (e) {
-      console.error('Error extracting YouTube ID:', e)
-      return 'Error: Unable to retrieve YouTube link.'
+      console.error('Error extracting YouTube ID:', e);
+      return 'Error: Unable to retrieve YouTube link.';
     }
   }
 
   private async extractFirstYoutubeIdFromSearch(
     query: string,
   ): Promise<string> {
-    const searchResults = await ytsr(query, { limit: 1 })
-    const firstResult = searchResults.items.find(item => item.type === 'video')
+    const searchResults = await ytsr(query, { limit: 1 });
+    const firstResult = searchResults.items.find(item => item.type === 'video');
     if (!firstResult || !('id' in firstResult)) {
-      throw new Error('No video found.')
+      throw new Error('No video found.');
     }
 
-    return firstResult.id
+    return firstResult.id;
   }
 }

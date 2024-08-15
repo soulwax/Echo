@@ -1,8 +1,8 @@
-import {APIApplicationCommandOptionChoice} from 'discord-api-types/v10';
+import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 import SpotifyWebApi from 'spotify-web-api-node';
 import getYouTubeSuggestionsFor from './get-youtube-suggestions-for.js';
 
-const filterDuplicates = <T extends {name: string}>(items: T[]) => {
+const filterDuplicates = <T extends { name: string }>(items: T[]) => {
   const results: T[] = [];
 
   for (const item of items) {
@@ -14,40 +14,55 @@ const filterDuplicates = <T extends {name: string}>(items: T[]) => {
   return results;
 };
 
-const getYouTubeAndSpotifySuggestionsFor = async (query: string, spotify: SpotifyWebApi, limit = 10): Promise<APIApplicationCommandOptionChoice[]> => {
+const getYouTubeAndSpotifySuggestionsFor = async (
+  query: string,
+  spotify: SpotifyWebApi,
+  limit = 10,
+): Promise<APIApplicationCommandOptionChoice[]> => {
   const [youtubeSuggestions, spotifyResults] = await Promise.all([
     getYouTubeSuggestionsFor(query),
-    spotify.search(query, ['track', 'album'], {limit: 5}),
+    spotify.search(query, ['track', 'album'], { limit: 5 }),
   ]);
 
   const totalYouTubeResults = youtubeSuggestions.length;
 
-  const spotifyAlbums = filterDuplicates(spotifyResults.body.albums?.items ?? []);
-  const spotifyTracks = filterDuplicates(spotifyResults.body.tracks?.items ?? []);
+  const spotifyAlbums = filterDuplicates(
+    spotifyResults.body.albums?.items ?? [],
+  );
+  const spotifyTracks = filterDuplicates(
+    spotifyResults.body.tracks?.items ?? [],
+  );
 
   const totalSpotifyResults = spotifyAlbums.length + spotifyTracks.length;
 
   // Number of results for each source should be roughly the same.
   // If we don't have enough Spotify suggestions, prioritize YouTube results.
   const maxSpotifySuggestions = Math.floor(limit / 2);
-  const numOfSpotifySuggestions = Math.min(maxSpotifySuggestions, totalSpotifyResults);
+  const numOfSpotifySuggestions = Math.min(
+    maxSpotifySuggestions,
+    totalSpotifyResults,
+  );
 
   const maxYouTubeSuggestions = limit - numOfSpotifySuggestions;
-  const numOfYouTubeSuggestions = Math.min(maxYouTubeSuggestions, totalYouTubeResults);
+  const numOfYouTubeSuggestions = Math.min(
+    maxYouTubeSuggestions,
+    totalYouTubeResults,
+  );
 
   const suggestions: APIApplicationCommandOptionChoice[] = [];
 
   suggestions.push(
-    ...youtubeSuggestions
-      .slice(0, numOfYouTubeSuggestions)
-      .map(suggestion => ({
-        name: `YouTube: ${suggestion}`,
-        value: suggestion,
-      }),
-      ));
+    ...youtubeSuggestions.slice(0, numOfYouTubeSuggestions).map(suggestion => ({
+      name: `YouTube: ${suggestion}`,
+      value: suggestion,
+    })),
+  );
 
   const maxSpotifyAlbums = Math.floor(numOfSpotifySuggestions / 2);
-  const numOfSpotifyAlbums = Math.min(maxSpotifyAlbums, spotifyResults.body.albums?.items.length ?? 0);
+  const numOfSpotifyAlbums = Math.min(
+    maxSpotifyAlbums,
+    spotifyResults.body.albums?.items.length ?? 0,
+  );
   const maxSpotifyTracks = numOfSpotifySuggestions - numOfSpotifyAlbums;
 
   suggestions.push(

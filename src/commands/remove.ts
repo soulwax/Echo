@@ -1,9 +1,9 @@
-import {ChatInputCommandInteraction} from 'discord.js';
-import {inject, injectable} from 'inversify';
-import {TYPES} from '../types.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { inject, injectable } from 'inversify';
 import PlayerManager from '../managers/player.js';
+import { TYPES } from '../types.js';
 import Command from './index.js';
-import {SlashCommandBuilder} from '@discordjs/builders';
 
 @injectable()
 export default class implements Command {
@@ -11,14 +11,17 @@ export default class implements Command {
     .setName('remove')
     .setDescription('remove songs from the queue')
     .addIntegerOption(option =>
-      option.setName('position')
+      option
+        .setName('position')
         .setDescription('position of the song to remove [default: 1]')
         .setRequired(false),
     )
     .addIntegerOption(option =>
-      option.setName('range')
+      option
+        .setName('range')
         .setDescription('number of songs to remove [default: 1]')
-        .setRequired(false));
+        .setRequired(false),
+    );
 
   private readonly playerManager: PlayerManager;
 
@@ -26,7 +29,9 @@ export default class implements Command {
     this.playerManager = playerManager;
   }
 
-  public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  public async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
     const player = this.playerManager.get(interaction.guild!.id);
 
     const position = interaction.options.getInteger('position') ?? 1;

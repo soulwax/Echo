@@ -1,9 +1,9 @@
+import { EmbedBuilder } from 'discord.js';
 import getYouTubeID from 'get-youtube-id';
-import {EmbedBuilder} from 'discord.js';
-import Player, {MediaSource, QueuedSong, STATUS} from '../services/player.js';
+import Player, { MediaSource, QueuedSong, STATUS } from '../services/player.js';
 import getProgressBar from './get-progress-bar.js';
-import {prettyTime} from './time.js';
-import {truncate} from './string.js';
+import { truncate } from './string.js';
+import { prettyTime } from './time.js';
 
 const PAGE_SIZE = 10;
 
@@ -13,15 +13,20 @@ const getMaxSongTitleLength = (title: string) => {
   return nonASCII.test(title) ? 28 : 48;
 };
 
-const getSongTitle = ({title, url, offset, source}: QueuedSong, shouldTruncate = false) => {
+const getSongTitle = (
+  { title, url, offset, source }: QueuedSong,
+  shouldTruncate = false,
+) => {
   if (source === MediaSource.HLS) {
     return `[${title}](${url})`;
   }
 
   const cleanSongTitle = title.replace(/\[.*\]/, '').trim();
 
-  const songTitle = shouldTruncate ? truncate(cleanSongTitle, getMaxSongTitleLength(cleanSongTitle)) : cleanSongTitle;
-  const youtubeId = url.length === 11 ? url : getYouTubeID(url) ?? '';
+  const songTitle = shouldTruncate
+    ? truncate(cleanSongTitle, getMaxSongTitleLength(cleanSongTitle))
+    : cleanSongTitle;
+  const youtubeId = url.length === 11 ? url : (getYouTubeID(url) ?? '');
 
   return `[${songTitle}](https://www.youtube.com/watch?v=${youtubeId}${offset === 0 ? '' : '&t=' + String(offset)})`;
 };
@@ -45,9 +50,16 @@ const getPlayerUI = (player: Player) => {
   const position = player.getPosition();
   const button = player.status === STATUS.PLAYING ? '⏹️' : '▶️';
   const progressBar = getProgressBar(10, position / song.length);
-  const elapsedTime = song.isLive ? 'live' : `${prettyTime(position)}/${prettyTime(song.length)}`;
-  const loop = player.loopCurrentSong ? '🔂' : player.loopCurrentQueue ? '🔁' : '';
-  const vol: string = typeof player.getVolume() === 'number' ? `${player.getVolume()!}%` : '';
+  const elapsedTime = song.isLive
+    ? 'live'
+    : `${prettyTime(position)}/${prettyTime(song.length)}`;
+  const loop = player.loopCurrentSong
+    ? '🔂'
+    : player.loopCurrentQueue
+      ? '🔁'
+      : '';
+  const vol: string =
+    typeof player.getVolume() === 'number' ? `${player.getVolume()!}%` : '';
   return `${button} ${progressBar} \`[${elapsedTime}]\`🔉 ${vol} ${loop}`;
 };
 
@@ -58,17 +70,19 @@ export const buildPlayingMessageEmbed = (player: Player): EmbedBuilder => {
     throw new Error('No playing song found');
   }
 
-  const {artist, thumbnailUrl, requestedBy} = currentlyPlaying;
+  const { artist, thumbnailUrl, requestedBy } = currentlyPlaying;
   const message = new EmbedBuilder();
   message
     .setColor(player.status === STATUS.PLAYING ? 'DarkGreen' : 'DarkRed')
     .setTitle(player.status === STATUS.PLAYING ? 'Now Playing' : 'Paused')
-    .setDescription(`
+    .setDescription(
+      `
       **${getSongTitle(currentlyPlaying)}**
       Requested by: <@${requestedBy}>\n
       ${getPlayerUI(player)}
-    `)
-    .setFooter({text: `Source: ${artist}`});
+    `,
+    )
+    .setFooter({ text: `Source: ${artist}` });
 
   if (thumbnailUrl) {
     message.setThumbnail(thumbnailUrl);
@@ -88,7 +102,7 @@ export const buildQueueEmbed = (player: Player, page: number): EmbedBuilder => {
   const maxQueuePage = Math.ceil((queueSize + 1) / PAGE_SIZE);
 
   if (page > maxQueuePage) {
-    throw new Error('the queue isn\'t that big');
+    throw new Error("the queue isn't that big");
   }
 
   const queuePageBegin = (page - 1) * PAGE_SIZE;
@@ -104,9 +118,11 @@ export const buildQueueEmbed = (player: Player, page: number): EmbedBuilder => {
     })
     .join('\n');
 
-  const {artist, thumbnailUrl, playlist, requestedBy} = currentlyPlaying;
+  const { artist, thumbnailUrl, playlist, requestedBy } = currentlyPlaying;
   const playlistTitle = playlist ? `(${playlist.title})` : '';
-  const totalLength = player.getQueue().reduce((accumulator, current) => accumulator + current.length, 0);
+  const totalLength = player
+    .getQueue()
+    .reduce((accumulator, current) => accumulator + current.length, 0);
 
   const message = new EmbedBuilder();
 
@@ -120,13 +136,23 @@ export const buildQueueEmbed = (player: Player, page: number): EmbedBuilder => {
   }
 
   message
-    .setTitle(player.status === STATUS.PLAYING ? `Now Playing ${player.loopCurrentSong ? '(loop on)' : ''}` : 'Queued songs')
+    .setTitle(
+      player.status === STATUS.PLAYING
+        ? `Now Playing ${player.loopCurrentSong ? '(loop on)' : ''}`
+        : 'Queued songs',
+    )
     .setColor(player.status === STATUS.PLAYING ? 'DarkGreen' : 'NotQuiteBlack')
     .setDescription(description)
-    .addFields([{name: 'In queue', value: getQueueInfo(player), inline: true}, {
-      name: 'Total length', value: `${totalLength > 0 ? prettyTime(totalLength) : '-'}`, inline: true,
-    }, {name: 'Page', value: `${page} out of ${maxQueuePage}`, inline: true}])
-    .setFooter({text: `Source: ${artist} ${playlistTitle}`});
+    .addFields([
+      { name: 'In queue', value: getQueueInfo(player), inline: true },
+      {
+        name: 'Total length',
+        value: `${totalLength > 0 ? prettyTime(totalLength) : '-'}`,
+        inline: true,
+      },
+      { name: 'Page', value: `${page} out of ${maxQueuePage}`, inline: true },
+    ])
+    .setFooter({ text: `Source: ${artist} ${playlistTitle}` });
 
   if (thumbnailUrl) {
     message.setThumbnail(thumbnailUrl);
@@ -134,4 +160,3 @@ export const buildQueueEmbed = (player: Player, page: number): EmbedBuilder => {
 
   return message;
 };
-

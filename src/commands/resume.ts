@@ -1,12 +1,15 @@
-import {SlashCommandBuilder} from '@discordjs/builders';
-import {inject, injectable} from 'inversify';
-import Command from './index.js';
-import {TYPES} from '../types.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
+import { inject, injectable } from 'inversify';
 import PlayerManager from '../managers/player.js';
-import {STATUS} from '../services/player.js';
-import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
-import {getMemberVoiceChannel, getMostPopularVoiceChannel} from '../utils/channels.js';
-import {ChatInputCommandInteraction, GuildMember} from 'discord.js';
+import { STATUS } from '../services/player.js';
+import { TYPES } from '../types.js';
+import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {
+  getMemberVoiceChannel,
+  getMostPopularVoiceChannel,
+} from '../utils/channels.js';
+import Command from './index.js';
 
 @injectable()
 export default class implements Command {
@@ -22,9 +25,13 @@ export default class implements Command {
     this.playerManager = playerManager;
   }
 
-  public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  public async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
     const player = this.playerManager.get(interaction.guild!.id);
-    const [targetVoiceChannel] = getMemberVoiceChannel(interaction.member as GuildMember) ?? getMostPopularVoiceChannel(interaction.guild!);
+    const [targetVoiceChannel] =
+      getMemberVoiceChannel(interaction.member as GuildMember) ??
+      getMostPopularVoiceChannel(interaction.guild!);
     if (player.status === STATUS.PLAYING) {
       throw new Error('already playing, give me a song name');
     }
