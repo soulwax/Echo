@@ -1,4 +1,4 @@
-import ytsr, { Video } from '@distube/ytsr';
+import ytsr, { Video, VideoResult } from '@distube/ytsr';
 import getYouTubeID from 'get-youtube-id';
 import got, { Got } from 'got';
 import { inject, injectable } from 'inversify';
@@ -95,18 +95,19 @@ export default class {
     query: string,
     shouldSplitChapters: boolean,
   ): Promise<SongMetadata[]> {
-    const { items } = await this.ytsrQueue.add(async () =>
-      this.cache.wrap(
-        ytsr,
-        query,
-        {
-          limit: 10,
-        },
-        {
-          expiresIn: ONE_HOUR_IN_SECONDS,
-        },
-      ),
-    );
+    const { items } = (await this.ytsrQueue.add(
+      async (): Promise<VideoResult> =>
+        this.cache.wrap(
+          ytsr,
+          query,
+          {
+            limit: 10,
+          },
+          {
+            expiresIn: ONE_HOUR_IN_SECONDS,
+          },
+        ) as Promise<VideoResult>,
+    )) as VideoResult;
 
     let firstVideo: Video | undefined;
 
