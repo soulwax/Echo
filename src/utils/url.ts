@@ -1,4 +1,4 @@
-import { URL } from 'url';
+import {URL} from 'url';
 
 export const cleanUrl = (url: string) => {
   try {

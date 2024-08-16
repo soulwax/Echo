@@ -1,20 +1,20 @@
-import ytsr, { Video, VideoResult } from '@distube/ytsr';
+import ytsr, {Video, VideoResult} from '@distube/ytsr';
 import getYouTubeID from 'get-youtube-id';
-import got, { Got } from 'got';
-import { inject, injectable } from 'inversify';
-import { parse, toSeconds } from 'iso8601-duration';
+import got, {Got} from 'got';
+import {inject, injectable} from 'inversify';
+import {parse, toSeconds} from 'iso8601-duration';
 import PQueue from 'p-queue';
-import { TYPES } from '../types.js';
+import {TYPES} from '../types.js';
 import {
   ONE_HOUR_IN_SECONDS,
   ONE_MINUTE_IN_SECONDS,
 } from '../utils/constants.js';
-import { parseTime } from '../utils/time.js';
+import {parseTime} from '../utils/time.js';
 import Config from './config.js';
 import KeyValueCacheProvider from './key-value-cache.js';
-import { MediaSource, QueuedPlaylist, SongMetadata } from './player.js';
+import {MediaSource, QueuedPlaylist, SongMetadata} from './player.js';
 
-// const oauth2Client = new OAuth2Client(
+// Const oauth2Client = new OAuth2Client(
 //   YOUTUBE_CLIENT_ID,
 //   YOUTUBE_CLIENT_SECRET,
 //   YOUTUBE_REDIRECT_URL,
@@ -80,7 +80,7 @@ export default class {
   ) {
     this.youtubeKey = config.YOUTUBE_API_KEY;
     this.cache = cache;
-    this.ytsrQueue = new PQueue({ concurrency: 4 });
+    this.ytsrQueue = new PQueue({concurrency: 4});
 
     this.got = got.extend({
       prefixUrl: 'https://www.googleapis.com/youtube/v3/',
@@ -95,7 +95,7 @@ export default class {
     query: string,
     shouldSplitChapters: boolean,
   ): Promise<SongMetadata[]> {
-    const { items } = (await this.ytsrQueue.add(
+    const {items} = (await this.ytsrQueue.add(
       async (): Promise<VideoResult> =>
         this.cache.wrap(
           ytsr,
@@ -106,7 +106,7 @@ export default class {
           {
             expiresIn: ONE_HOUR_IN_SECONDS,
           },
-        ) as Promise<VideoResult>,
+        ),
     )) as VideoResult;
 
     let firstVideo: Video | undefined;
@@ -136,7 +136,7 @@ export default class {
       throw new Error('Video could not be found.');
     }
 
-    return this.getMetadataFromVideo({ video, shouldSplitChapters });
+    return this.getMetadataFromVideo({video, shouldSplitChapters});
   }
 
   async getPlaylist(
@@ -149,7 +149,7 @@ export default class {
         id: listId,
       },
     };
-    const { items: playlists } = await this.cache.wrap(
+    const {items: playlists} = await this.cache.wrap(
       async () =>
         this.got('playlists', playlistParams).json() as Promise<{
           items: PlaylistResponse[];
@@ -183,7 +183,7 @@ export default class {
       };
 
       // eslint-disable-next-line no-await-in-loop
-      const { items, nextPageToken } = await this.cache.wrap(
+      const {items, nextPageToken} = await this.cache.wrap(
         async () =>
           this.got(
             'playlistItems',
@@ -224,7 +224,7 @@ export default class {
         songsToReturn.push(
           ...this.getMetadataFromVideo({
             video: videoDetails.find(
-              (i: { id: string }) => i.id === video.contentDetails.videoId,
+              (i: {id: string}) => i.id === video.contentDetails.videoId,
             )!,
             queuedPlaylist,
             shouldSplitChapters,
@@ -275,7 +275,7 @@ export default class {
 
     const tracks: SongMetadata[] = [];
 
-    for (const [label, { offset, length }] of chapters) {
+    for (const [label, {offset, length}] of chapters) {
       tracks.push({
         ...base,
         offset,
@@ -291,10 +291,10 @@ export default class {
     description: string,
     videoDurationSeconds: number,
   ) {
-    const map = new Map<string, { offset: number; length: number }>();
+    const map = new Map<string, {offset: number; length: number}>();
     let foundFirstTimestamp = false;
 
-    const foundTimestamps: Array<{ name: string; offset: number }> = [];
+    const foundTimestamps: Array<{name: string; offset: number}> = [];
     for (const line of description.split('\n')) {
       const timestamps = Array.from(line.matchAll(/(?:\d+:)+\d+/g));
       if (timestamps?.length !== 1) {
@@ -313,10 +313,10 @@ export default class {
       const seconds = parseTime(timestamp);
       const chapterName = line.split(timestamp)[1].trim();
 
-      foundTimestamps.push({ name: chapterName, offset: seconds });
+      foundTimestamps.push({name: chapterName, offset: seconds});
     }
 
-    for (const [i, { name, offset }] of foundTimestamps.entries()) {
+    for (const [i, {name, offset}] of foundTimestamps.entries()) {
       map.set(name, {
         offset,
         length:
@@ -343,7 +343,7 @@ export default class {
       },
     };
 
-    const { items: videos } = await this.cache.wrap(
+    const {items: videos} = await this.cache.wrap(
       async () =>
         this.got('videos', p).json() as Promise<{
           items: VideoDetailsResponse[];

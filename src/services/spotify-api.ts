@@ -1,10 +1,10 @@
 import shuffle from 'array-shuffle';
-import { inject, injectable } from 'inversify';
+import {inject, injectable} from 'inversify';
 import * as spotifyURI from 'spotify-uri';
 import SpotifyWebApi from 'spotify-web-api-node';
-import { URL } from 'url';
-import { TYPES } from '../types.js';
-import { QueuedPlaylist } from './player.js';
+import {URL} from 'url';
+import {TYPES} from '../types.js';
+import {QueuedPlaylist} from './player.js';
 import ThirdParty from './third-party.js';
 
 export interface SpotifyTrack {
@@ -28,10 +28,10 @@ export default class SpotifyAPI {
   ): Promise<[SpotifyTrack[], QueuedPlaylist]> {
     try {
       const uri = spotifyURI.parse(url) as spotifyURI.Playlist;
-      let [{ body: playlistResponse }, { body: tracksResponse }] =
-        await Promise.all([
+      let [{body: playlistResponse}, {body: tracksResponse}]
+        = await Promise.all([
           this.spotify.getPlaylist(uri.id),
-          this.spotify.getPlaylistTracks(uri.id, { limit: 50 }),
+          this.spotify.getPlaylistTracks(uri.id, {limit: 50}),
         ]);
 
       const items: SpotifyApi.TrackObjectFull[] = tracksResponse.items
@@ -48,9 +48,9 @@ export default class SpotifyAPI {
         const limit = parseInt(nextUrl.searchParams.get('limit') ?? '50', 10);
         const offset = parseInt(nextUrl.searchParams.get('offset') ?? '0', 10);
 
-        ({ body: tracksResponse } = await this.spotify.getPlaylistTracks(
+        ({body: tracksResponse} = await this.spotify.getPlaylistTracks(
           uri.id,
-          { limit, offset },
+          {limit, offset},
         ));
 
         items.push(

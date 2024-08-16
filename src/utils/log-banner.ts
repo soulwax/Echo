@@ -1,5 +1,5 @@
-import { makeLines } from 'nodesplash';
-import { readPackageSync } from 'read-pkg';
+import {makeLines} from 'nodesplash';
+import {readPackageSync} from 'read-pkg';
 
 const logBanner = () => {
   console.log(

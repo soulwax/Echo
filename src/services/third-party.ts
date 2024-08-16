@@ -26,10 +26,16 @@ export default class ThirdParty {
   }
 
   private async refreshSpotifyToken() {
-    await pRetry(async () => {
-      const auth = await this.spotify.clientCredentialsGrant();
-      this.spotify.setAccessToken(auth.body.access_token);
-      this.spotifyTokenTimerId = setTimeout(this.refreshSpotifyToken.bind(this), (auth.body.expires_in / 2) * 1000);
-    }, {retries: 5});
+    await pRetry(
+      async () => {
+        const auth = await this.spotify.clientCredentialsGrant();
+        this.spotify.setAccessToken(auth.body.access_token);
+        this.spotifyTokenTimerId = setTimeout(
+          this.refreshSpotifyToken.bind(this),
+          (auth.body.expires_in / 2) * 1000,
+        );
+      },
+      {retries: 5},
+    );
   }
 }

@@ -1,16 +1,16 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import {SlashCommandBuilder} from '@discordjs/builders';
 import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from 'discord.js';
-import { inject, injectable } from 'inversify';
+import {inject, injectable} from 'inversify';
 import Spotify from 'spotify-web-api-node';
-import { URL } from 'url';
+import {URL} from 'url';
 import AddQueryToQueue from '../services/add-query-to-queue.js';
 import KeyValueCacheProvider from '../services/key-value-cache.js';
 import ThirdParty from '../services/third-party.js';
-import { TYPES } from '../types.js';
-import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js';
+import {TYPES} from '../types.js';
+import {ONE_HOUR_IN_SECONDS} from '../utils/constants.js';
 import getYouTubeAndSpotifySuggestionsFor from '../utils/get-youtube-and-spotify-suggestions-for.js';
 import Command from './index.js';
 
@@ -34,7 +34,7 @@ export default class implements Command {
     .addBooleanOption(option =>
       option
         .setName('shuffle')
-        .setDescription("shuffle the input if you're adding multiple tracks"),
+        .setDescription('shuffle the input if you\'re adding multiple tracks'),
     )
     .addBooleanOption(option =>
       option

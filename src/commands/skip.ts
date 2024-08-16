@@ -1,9 +1,9 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction } from 'discord.js';
-import { inject, injectable } from 'inversify';
+import {SlashCommandBuilder} from '@discordjs/builders';
+import {ChatInputCommandInteraction} from 'discord.js';
+import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
-import { TYPES } from '../types.js';
-import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {TYPES} from '../types.js';
+import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 import Command from './index.js';
 
 @injectable()
@@ -35,12 +35,12 @@ export default class implements Command {
       throw new Error('invalid number of songs to skip');
     }
 
-    const player = this.playerManager.get(interaction.guild!.id);
+    const player = this.playerManager.get(interaction.guild.id);
 
     try {
       await player.forward(numToSkip);
       await interaction.reply({
-        // if one song is skipped, the content will be "Moving on"
+        // If one song is skipped, the content will be "Moving on"
         // if more than one song is skipped, the content will be "Skipping x songs"
         content: numToSkip === 1 ? 'Moving on' : `Skipping ${numToSkip} songs`,
         embeds: player.getCurrent() ? [buildPlayingMessageEmbed(player)] : [],

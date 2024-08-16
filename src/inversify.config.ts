@@ -1,9 +1,9 @@
-import { Client, GatewayIntentBits } from 'discord.js';
-import { Container } from 'inversify';
+import {Client, GatewayIntentBits} from 'discord.js';
+import {Container} from 'inversify';
 import 'reflect-metadata';
 import Bot from './bot.js';
 import ConfigProvider from './services/config.js';
-import { TYPES } from './types.js';
+import {TYPES} from './types.js';
 
 // Managers
 import PlayerManager from './managers/player.js';
@@ -54,7 +54,7 @@ intents.push(GatewayIntentBits.GuildVoiceStates); // To listen for voice state c
 
 // Bot
 container.bind<Bot>(TYPES.Bot).to(Bot).inSingletonScope();
-container.bind<Client>(TYPES.Client).toConstantValue(new Client({ intents }));
+container.bind<Client>(TYPES.Client).toConstantValue(new Client({intents}));
 
 // Managers
 container

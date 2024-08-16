@@ -1,8 +1,8 @@
-import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
+import {APIApplicationCommandOptionChoice} from 'discord-api-types/v10';
 import SpotifyWebApi from 'spotify-web-api-node';
 import getYouTubeSuggestionsFor from './get-youtube-suggestions-for.js';
 
-const filterDuplicates = <T extends { name: string }>(items: T[]) => {
+const filterDuplicates = <T extends {name: string}>(items: T[]) => {
   const results: T[] = [];
 
   for (const item of items) {
@@ -21,7 +21,7 @@ const getYouTubeAndSpotifySuggestionsFor = async (
 ): Promise<APIApplicationCommandOptionChoice[]> => {
   const [youtubeSuggestions, spotifyResults] = await Promise.all([
     getYouTubeSuggestionsFor(query),
-    spotify.search(query, ['track', 'album'], { limit: 5 }),
+    spotify.search(query, ['track', 'album'], {limit: 5}),
   ]);
 
   const totalYouTubeResults = youtubeSuggestions.length;

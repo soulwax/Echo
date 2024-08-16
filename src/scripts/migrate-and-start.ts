@@ -9,15 +9,27 @@ import Prisma from '@prisma/client';
 import ora from 'ora';
 import {startBot} from '../index.js';
 import logBanner from '../utils/log-banner.js';
-import createDatabaseUrl, {createDatabasePath} from '../utils/create-database-url.js';
+import createDatabaseUrl, {
+  createDatabasePath,
+} from '../utils/create-database-url.js';
 import {DATA_DIR} from '../services/config.js';
 
 const client = new Prisma.PrismaClient();
 
-process.env.DATABASE_URL = process.env.DATABASE_URL ?? createDatabaseUrl(DATA_DIR);
+process.env.DATABASE_URL
+  = process.env.DATABASE_URL ?? createDatabaseUrl(DATA_DIR);
 
 const migrateFromSequelizeToPrisma = async () => {
-  await execa('prisma', ['migrate', 'resolve', '--applied', '20220101155430_migrate_from_sequelize'], {preferLocal: true});
+  await execa(
+    'prisma',
+    [
+      'migrate',
+      'resolve',
+      '--applied',
+      '20220101155430_migrate_from_sequelize',
+    ],
+    {preferLocal: true},
+  );
 };
 
 const doesUserHaveExistingDatabase = async () => {
@@ -34,7 +46,10 @@ const hasDatabaseBeenMigratedToPrisma = async () => {
   try {
     await client.$queryRaw`SELECT COUNT(id) FROM _prisma_migrations`;
   } catch (error: unknown) {
-    if (error instanceof Prisma.Prisma.PrismaClientKnownRequestError && error.code === 'P2010') {
+    if (
+      error instanceof Prisma.Prisma.PrismaClientKnownRequestError
+      && error.code === 'P2010'
+    ) {
       // Table doesn't exist
       return false;
     }
@@ -57,7 +72,9 @@ const hasDatabaseBeenMigratedToPrisma = async () => {
         await migrateFromSequelizeToPrisma();
       } catch (error) {
         if ((error as ExecaError).stderr) {
-          spinner.fail('Failed to apply database migrations (going from Sequelize to Prisma):');
+          spinner.fail(
+            'Failed to apply database migrations (going from Sequelize to Prisma):',
+          );
           console.error((error as ExecaError).stderr);
           process.exit(1);
         } else {

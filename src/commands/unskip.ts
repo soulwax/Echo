@@ -1,9 +1,9 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction } from 'discord.js';
-import { inject, injectable } from 'inversify';
+import {SlashCommandBuilder} from '@discordjs/builders';
+import {ChatInputCommandInteraction} from 'discord.js';
+import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
-import { TYPES } from '../types.js';
-import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {TYPES} from '../types.js';
+import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 import Command from './index.js';
 
 @injectable()
@@ -23,12 +23,12 @@ export default class implements Command {
   public async execute(
     interaction: ChatInputCommandInteraction,
   ): Promise<void> {
-    const player = this.playerManager.get(interaction.guild!.id);
+    const player = this.playerManager.get(interaction.guild.id);
 
     try {
       await player.back();
       await interaction.reply({
-        content: "back 'er up'",
+        content: 'back \'er up\'',
         embeds: player.getCurrent() ? [buildPlayingMessageEmbed(player)] : [],
       });
     } catch (_: unknown) {

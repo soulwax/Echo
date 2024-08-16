@@ -1,10 +1,10 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
-import { inject, injectable } from 'inversify';
+import {SlashCommandBuilder} from '@discordjs/builders';
+import {ChatInputCommandInteraction, GuildMember} from 'discord.js';
+import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
-import { STATUS } from '../services/player.js';
-import { TYPES } from '../types.js';
-import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {STATUS} from '../services/player.js';
+import {TYPES} from '../types.js';
+import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 import {
   getMemberVoiceChannel,
   getMostPopularVoiceChannel,
@@ -28,10 +28,10 @@ export default class implements Command {
   public async execute(
     interaction: ChatInputCommandInteraction,
   ): Promise<void> {
-    const player = this.playerManager.get(interaction.guild!.id);
-    const [targetVoiceChannel] =
-      getMemberVoiceChannel(interaction.member as GuildMember) ??
-      getMostPopularVoiceChannel(interaction.guild!);
+    const player = this.playerManager.get(interaction.guild.id);
+    const [targetVoiceChannel]
+      = getMemberVoiceChannel(interaction.member as GuildMember)
+      ?? getMostPopularVoiceChannel(interaction.guild);
     if (player.status === STATUS.PLAYING) {
       throw new Error('already playing, give me a song name');
     }

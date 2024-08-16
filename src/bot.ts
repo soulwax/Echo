@@ -1,16 +1,16 @@
-import { REST } from '@discordjs/rest';
-import { generateDependencyReport } from '@discordjs/voice';
-import { Routes } from 'discord-api-types/v10';
-import { Client, Collection, User } from 'discord.js';
-import { inject, injectable } from 'inversify';
+import {REST} from '@discordjs/rest';
+import {generateDependencyReport} from '@discordjs/voice';
+import {Routes} from 'discord-api-types/v10';
+import {Client, Collection, User} from 'discord.js';
+import {inject, injectable} from 'inversify';
 import ora from 'ora';
 import Command from './commands/index.js';
 import handleGuildCreate from './events/guild-create.js';
 import handleVoiceStateUpdate from './events/voice-state-update.js';
 import container from './inversify.config.js';
 import Config from './services/config.js';
-import { TYPES } from './types.js';
-import { isUserInVoice } from './utils/channels.js';
+import {TYPES} from './types.js';
+import {isUserInVoice} from './utils/channels.js';
 import debug from './utils/debug.js';
 import errorMsg from './utils/error-msg.js';
 import registerCommandsOnGuild from './utils/register-commands-on-guild.js';
@@ -70,18 +70,18 @@ export default class {
           }
 
           if (!interaction.guild) {
-            await interaction.reply(errorMsg("you can't use this bot in a DM"));
+            await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
             return;
           }
 
-          const requiresVC =
-            command.requiresVC instanceof Function
+          const requiresVC
+            = command.requiresVC instanceof Function
               ? command.requiresVC(interaction)
               : command.requiresVC;
           if (
-            requiresVC &&
-            interaction.member &&
-            !isUserInVoice(interaction.guild, interaction.member.user as User)
+            requiresVC
+            && interaction.member
+            && !isUserInVoice(interaction.guild, interaction.member.user as User)
           ) {
             await interaction.reply({
               content: errorMsg('gotta be in a voice channel'),
@@ -120,8 +120,8 @@ export default class {
         // This can fail if the message was deleted, and we don't want to crash the whole bot
         try {
           if (
-            (interaction.isCommand() || interaction.isButton()) &&
-            (interaction.replied || interaction.deferred)
+            (interaction.isCommand() || interaction.isButton())
+            && (interaction.replied || interaction.deferred)
           ) {
             await interaction.editReply(errorMsg(error as Error));
           } else if (interaction.isCommand() || interaction.isButton()) {
@@ -140,12 +140,12 @@ export default class {
       debug(generateDependencyReport());
 
       // Update commands
-      const rest = new REST({ version: '10' }).setToken(
+      const rest = new REST({version: '10'}).setToken(
         this.config.DISCORD_TOKEN,
       );
       if (this.shouldRegisterCommandsOnBot) {
         spinner.text = '📡 updating commands on bot...';
-        await rest.put(Routes.applicationCommands(this.client.user!.id), {
+        await rest.put(Routes.applicationCommands(this.client.user.id), {
           body: this.commandsByName.map(command =>
             command.slashCommand.toJSON(),
           ),
@@ -158,18 +158,18 @@ export default class {
             await registerCommandsOnGuild({
               rest,
               guildId: guild.id,
-              applicationId: this.client.user!.id,
+              applicationId: this.client.user.id,
               commands: this.commandsByName.map(c => c.slashCommand),
             });
           }),
           // Remove commands registered on bot (if they exist)
-          rest.put(Routes.applicationCommands(this.client.user!.id), {
+          rest.put(Routes.applicationCommands(this.client.user.id), {
             body: [],
           }),
         ]);
       }
 
-      this.client.user!.setPresence({
+      this.client.user.setPresence({
         activities: [
           {
             name: this.config.BOT_ACTIVITY,

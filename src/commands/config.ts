@@ -1,12 +1,12 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import {SlashCommandBuilder} from '@discordjs/builders';
 import {
   ChatInputCommandInteraction,
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { injectable } from 'inversify';
-import { prisma } from '../utils/db.js';
-import { getGuildSettings } from '../utils/get-guild-settings.js';
+import {injectable} from 'inversify';
+import {prisma} from '../utils/db.js';
+import {getGuildSettings} from '../utils/get-guild-settings.js';
 import Command from './index.js';
 
 @injectable()
@@ -108,7 +108,7 @@ export default class implements Command {
 
   async execute(interaction: ChatInputCommandInteraction) {
     // Ensure guild settings exist before trying to update
-    await getGuildSettings(interaction.guild!.id);
+    await getGuildSettings(interaction.guild.id);
 
     switch (interaction.options.getSubcommand()) {
       case 'set-playlist-limit': {
@@ -120,7 +120,7 @@ export default class implements Command {
 
         await prisma.setting.update({
           where: {
-            guildId: interaction.guild!.id,
+            guildId: interaction.guild.id,
           },
           data: {
             playlistLimit: limit,
@@ -137,7 +137,7 @@ export default class implements Command {
 
         await prisma.setting.update({
           where: {
-            guildId: interaction.guild!.id,
+            guildId: interaction.guild.id,
           },
           data: {
             secondsToWaitAfterQueueEmpties: delay,
@@ -154,7 +154,7 @@ export default class implements Command {
 
         await prisma.setting.update({
           where: {
-            guildId: interaction.guild!.id,
+            guildId: interaction.guild.id,
           },
           data: {
             leaveIfNoListeners: value,
@@ -171,7 +171,7 @@ export default class implements Command {
 
         await prisma.setting.update({
           where: {
-            guildId: interaction.guild!.id,
+            guildId: interaction.guild.id,
           },
           data: {
             queueAddResponseEphemeral: value,
@@ -188,7 +188,7 @@ export default class implements Command {
 
         await prisma.setting.update({
           where: {
-            guildId: interaction.guild!.id,
+            guildId: interaction.guild.id,
           },
           data: {
             autoAnnounceNextSong: value,
@@ -205,7 +205,7 @@ export default class implements Command {
 
         await prisma.setting.update({
           where: {
-            guildId: interaction.guild!.id,
+            guildId: interaction.guild.id,
           },
           data: {
             defaultVolume: value,
@@ -220,7 +220,7 @@ export default class implements Command {
       case 'get': {
         const embed = new EmbedBuilder().setTitle('Config');
 
-        const config = await getGuildSettings(interaction.guild!.id);
+        const config = await getGuildSettings(interaction.guild.id);
 
         const settingsToShow = {
           'Playlist Limit': config.playlistLimit,
@@ -246,7 +246,7 @@ export default class implements Command {
 
         embed.setDescription(description);
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({embeds: [embed]});
 
         break;
       }

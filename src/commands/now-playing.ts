@@ -18,8 +18,10 @@ export default class implements Command {
     this.playerManager = playerManager;
   }
 
-  public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const player = this.playerManager.get(interaction.guild!.id);
+  public async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
+    const player = this.playerManager.get(interaction.guild.id);
 
     if (!player.getCurrent()) {
       throw new Error('nothing is currently playing');

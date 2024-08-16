@@ -121,7 +121,6 @@ export default class FileCacheProvider {
         orderBy: {
           accessedAt: 'asc',
         },
-
       });
 
       if (oldest) {
@@ -142,7 +141,9 @@ export default class FileCacheProvider {
     if (numOfEvictedFiles > 0) {
       debug(`${numOfEvictedFiles} files have been evicted`);
     } else {
-      debug(`No files needed to be evicted. Total size of the cache is currently ${totalSizeBytes} bytes, and the cache limit is ${this.config.CACHE_LIMIT_IN_BYTES} bytes.`);
+      debug(
+        `No files needed to be evicted. Total size of the cache is currently ${totalSizeBytes} bytes, and the cache limit is ${this.config.CACHE_LIMIT_IN_BYTES} bytes.`,
+      );
     }
   }
 
@@ -157,7 +158,9 @@ export default class FileCacheProvider {
         });
 
         if (!model) {
-          debug(`${dirent.name} was present on disk but was not in the database. Removing from disk.`);
+          debug(
+            `${dirent.name} was present on disk but was not in the database. Removing from disk.`,
+          );
           await fs.unlink(path.join(this.config.CACHE_DIR, dirent.name));
         }
       }
@@ -170,7 +173,9 @@ export default class FileCacheProvider {
       try {
         await fs.access(filePath);
       } catch {
-        debug(`${model.hash} was present in database but was not on disk. Removing from database.`);
+        debug(
+          `${model.hash} was present in database but was not on disk. Removing from database.`,
+        );
         await prisma.fileCache.delete({
           where: {
             hash: model.hash,

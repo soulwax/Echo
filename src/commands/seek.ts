@@ -1,10 +1,10 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction } from 'discord.js';
-import { inject, injectable } from 'inversify';
+import {SlashCommandBuilder} from '@discordjs/builders';
+import {ChatInputCommandInteraction} from 'discord.js';
+import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
-import { TYPES } from '../types.js';
+import {TYPES} from '../types.js';
 import durationStringToSeconds from '../utils/duration-string-to-seconds.js';
-import { parseTime, prettyTime } from '../utils/time.js';
+import {parseTime, prettyTime} from '../utils/time.js';
 import Command from './index.js';
 
 @injectable()
@@ -32,7 +32,7 @@ export default class implements Command {
   public async execute(
     interaction: ChatInputCommandInteraction,
   ): Promise<void> {
-    const player = this.playerManager.get(interaction.guild!.id);
+    const player = this.playerManager.get(interaction.guild.id);
 
     const currentSong = player.getCurrent();
 
@@ -41,7 +41,7 @@ export default class implements Command {
     }
 
     if (currentSong.isLive) {
-      throw new Error("can't seek in a livestream");
+      throw new Error('can\'t seek in a livestream');
     }
 
     const time = interaction.options.getString('time')!;
@@ -55,7 +55,7 @@ export default class implements Command {
     }
 
     if (seekTime > currentSong.length) {
-      throw new Error("can't seek past the end of the song");
+      throw new Error('can\'t seek past the end of the song');
     }
 
     await Promise.all([player.seek(seekTime), interaction.deferReply()]);

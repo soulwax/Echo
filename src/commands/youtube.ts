@@ -1,13 +1,13 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { exec } from 'child_process';
-import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js';
+import {SlashCommandBuilder} from '@discordjs/builders';
+import {exec} from 'child_process';
+import {AttachmentBuilder, ChatInputCommandInteraction} from 'discord.js';
 import fs from 'fs';
-import { inject, injectable } from 'inversify';
+import {inject, injectable} from 'inversify';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import ytsr from 'ytsr';
 import Config from '../services/config.js';
-import { DownloadResult, TYPES } from '../types.js';
+import {DownloadResult, TYPES} from '../types.js';
 import Command from './index.js';
 
 const MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER = 8;
@@ -34,8 +34,8 @@ export default class YoutubeDownloadCommand implements Command {
         .setDescription('The quality of the video')
         .setRequired(false)
         .addChoices(
-          { name: 'Best', value: 'bestvideo+bestaudio/best' },
-          { name: 'Normal', value: 'worstvideo+worstaudio/worst' },
+          {name: 'Best', value: 'bestvideo+bestaudio/best'},
+          {name: 'Normal', value: 'worstvideo+worstaudio/worst'},
         ),
     );
 
@@ -59,19 +59,19 @@ export default class YoutubeDownloadCommand implements Command {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query')!;
-    const quality =
-      interaction.options.getString('quality') || 'worstvideo+worstaudio/worst';
+    const quality
+      = interaction.options.getString('quality') || 'worstvideo+worstaudio/worst';
 
     await interaction.deferReply();
 
     try {
-      const { videoUrl, filePath } = await this.downloadFileWithYtDlp(
+      const {videoUrl, filePath} = await this.downloadFileWithYtDlp(
         query,
         quality,
       );
 
-      const qualityValue =
-        quality === 'bestvideo+bestaudio/best'
+      const qualityValue
+        = quality === 'bestvideo+bestaudio/best'
           ? MAX_FILE_SIZE_MB_FOR_BOOSTED_SERVER
           : MAX_FILE_SIZE_MB_FOR_UNBOOSTED_SERVER;
       await this.compressVideo(filePath, qualityValue);
@@ -124,7 +124,7 @@ export default class YoutubeDownloadCommand implements Command {
           } else {
             const videoUrl = stdout.trim().split('\n')[0]; // Extract the direct video URL
             const mp4FilePath = `${ytFilePath}.mp4`; // Define the mp4 file path
-            resolve({ filePath: mp4FilePath, videoUrl });
+            resolve({filePath: mp4FilePath, videoUrl});
           }
         },
       );
@@ -150,8 +150,8 @@ export default class YoutubeDownloadCommand implements Command {
           const bitrate = Math.floor(targetSize / durationInSeconds); // Calculate target bitrate
 
           // For better quality, I now use a two-pass encoding process with adjusted CRF (Constant Rate Factor) and preset
-          const scale =
-            targetSizeMB > 25
+          const scale
+            = targetSizeMB > 25
               ? 'iw/2:ih/2'
               : targetSizeMB < 12
                 ? 'iw/4:ih/4'
@@ -220,7 +220,7 @@ export default class YoutubeDownloadCommand implements Command {
   private async extractFirstYoutubeIdFromSearch(
     query: string,
   ): Promise<string> {
-    const searchResults = await ytsr(query, { limit: 1 });
+    const searchResults = await ytsr(query, {limit: 1});
     const firstResult = searchResults.items.find(item => item.type === 'video');
     if (!firstResult || !('id' in firstResult)) {
       throw new Error('No video found.');

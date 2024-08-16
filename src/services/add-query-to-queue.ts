@@ -1,22 +1,22 @@
 /* eslint-disable complexity */
 import shuffle from 'array-shuffle';
-import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
-import { inject, injectable } from 'inversify';
-import { URL } from 'node:url';
-import { SponsorBlock } from 'sponsorblock-api';
+import {ChatInputCommandInteraction, GuildMember} from 'discord.js';
+import {inject, injectable} from 'inversify';
+import {URL} from 'node:url';
+import {SponsorBlock} from 'sponsorblock-api';
 import PlayerManager from '../managers/player.js';
 import GetSongs from '../services/get-songs.js';
-import { TYPES } from '../types.js';
-import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {TYPES} from '../types.js';
+import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 import {
   getMemberVoiceChannel,
   getMostPopularVoiceChannel,
 } from '../utils/channels.js';
-import { ONE_HOUR_IN_SECONDS } from '../utils/constants.js';
-import { getGuildSettings } from '../utils/get-guild-settings.js';
+import {ONE_HOUR_IN_SECONDS} from '../utils/constants.js';
+import {getGuildSettings} from '../utils/get-guild-settings.js';
 import Config from './config.js';
 import KeyValueCacheProvider from './key-value-cache.js';
-import { MediaSource, SongMetadata, STATUS } from './player.js';
+import {MediaSource, SongMetadata, STATUS} from './player.js';
 
 @injectable()
 export default class AddQueryToQueue {
@@ -54,19 +54,19 @@ export default class AddQueryToQueue {
     skipCurrentTrack: boolean;
     interaction: ChatInputCommandInteraction;
   }): Promise<void> {
-    const guildId = interaction.guild!.id;
+    const guildId = interaction.guild.id;
     const player = this.playerManager.get(guildId);
     const wasPlayingSong = player.getCurrent() !== null;
 
-    const [targetVoiceChannel] =
-      getMemberVoiceChannel(interaction.member as GuildMember) ??
-      getMostPopularVoiceChannel(interaction.guild!);
+    const [targetVoiceChannel]
+      = getMemberVoiceChannel(interaction.member as GuildMember)
+      ?? getMostPopularVoiceChannel(interaction.guild);
 
     const settings = await getGuildSettings(guildId);
 
-    const { playlistLimit, queueAddResponseEphemeral } = settings;
+    const {playlistLimit, queueAddResponseEphemeral} = settings;
 
-    await interaction.deferReply({ ephemeral: queueAddResponseEphemeral });
+    await interaction.deferReply({ephemeral: queueAddResponseEphemeral});
 
     let newSongs: SongMetadata[] = [];
     let extraMsg = '';
@@ -102,15 +102,15 @@ export default class AddQueryToQueue {
           if (songs) {
             newSongs.push(...songs);
           } else {
-            throw new Error("that doesn't exist");
+            throw new Error('that doesn\'t exist');
           }
         }
       } else if (
-        url.protocol === 'spotify:' ||
-        url.host === 'open.spotify.com'
+        url.protocol === 'spotify:'
+        || url.host === 'open.spotify.com'
       ) {
-        const [convertedSongs, nSongsNotFound, totalSongs] =
-          await this.getSongs.spotifySource(
+        const [convertedSongs, nSongsNotFound, totalSongs]
+          = await this.getSongs.spotifySource(
             query,
             playlistLimit,
             shouldSplitChapters,
@@ -139,7 +139,7 @@ export default class AddQueryToQueue {
         if (song) {
           newSongs.push(song);
         } else {
-          throw new Error("that doesn't exist");
+          throw new Error('that doesn\'t exist');
         }
       }
     } catch (_: unknown) {
@@ -152,7 +152,7 @@ export default class AddQueryToQueue {
       if (songs) {
         newSongs.push(...songs);
       } else {
-        throw new Error("that doesn't exist");
+        throw new Error('that doesn\'t exist');
       }
     }
 
@@ -174,10 +174,10 @@ export default class AddQueryToQueue {
       player.add(
         {
           ...song,
-          addedInChannelId: interaction.channel!.id,
-          requestedBy: interaction.member!.user.id,
+          addedInChannelId: interaction.channel.id,
+          requestedBy: interaction.member.user.id,
         },
-        { immediate: addToFrontOfQueue ?? false },
+        {immediate: addToFrontOfQueue ?? false},
       );
     });
 
@@ -245,18 +245,18 @@ export default class AddQueryToQueue {
 
   private async skipNonMusicSegments(song: SongMetadata) {
     if (
-      !this.sponsorBlock ||
-      (this.sponsorBlockDisabledUntil &&
-        new Date() < this.sponsorBlockDisabledUntil) ||
-      song.source !== MediaSource.Youtube ||
-      !song.url
+      !this.sponsorBlock
+      || (this.sponsorBlockDisabledUntil
+        && new Date() < this.sponsorBlockDisabledUntil)
+      || song.source !== MediaSource.Youtube
+      || !song.url
     ) {
       return song;
     }
 
     try {
-      const segments =
-        (await this.cache.wrap(
+      const segments
+        = (await this.cache.wrap(
           async () =>
             this.sponsorBlock?.getSegments(song.url, ['music_offtopic']),
           {
@@ -268,15 +268,15 @@ export default class AddQueryToQueue {
         .sort((a, b) => a.startTime - b.startTime)
         .reduce(
           (
-            acc: Array<{ startTime: number; endTime: number }>,
-            { startTime, endTime },
+            acc: Array<{startTime: number; endTime: number}>,
+            {startTime, endTime},
           ) => {
             const previousSegment = acc[acc.length - 1];
             // If segments overlap merge
             if (previousSegment && previousSegment.endTime > startTime) {
               acc[acc.length - 1].endTime = endTime;
             } else {
-              acc.push({ startTime, endTime });
+              acc.push({startTime, endTime});
             }
 
             return acc;

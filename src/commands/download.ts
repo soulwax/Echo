@@ -1,13 +1,13 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import {SlashCommandBuilder} from '@discordjs/builders';
 import axios from 'axios';
-import { exec } from 'child_process';
-import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js';
+import {exec} from 'child_process';
+import {AttachmentBuilder, ChatInputCommandInteraction} from 'discord.js';
 import fs from 'fs';
 import https from 'https';
-import { inject, injectable } from 'inversify';
+import {inject, injectable} from 'inversify';
 import path from 'path';
 import Config from '../services/config.js';
-import { TYPES } from '../types.js';
+import {TYPES} from '../types.js';
 import Command from './index.js';
 
 const outputDir = path.join('./songs/');
@@ -32,8 +32,8 @@ export default class DownloadCommand implements Command {
         .setDescription('The bitrate of the song')
         .setRequired(false)
         .addChoices(
-          { name: '128', value: '128' },
-          { name: '320', value: '320' },
+          {name: '128', value: '128'},
+          {name: '320', value: '320'},
         ),
     );
 
@@ -53,7 +53,7 @@ export default class DownloadCommand implements Command {
     await interaction.deferReply();
 
     try {
-      const { filePath, filename } = await this.downloadFile(url, query);
+      const {filePath, filename} = await this.downloadFile(url, query);
       const fileAttachment = new AttachmentBuilder(filePath, {
         name: filename,
       });
@@ -126,7 +126,7 @@ export default class DownloadCommand implements Command {
   private async downloadFile(
     url: string,
     query: string,
-  ): Promise<{ filePath: string; filename: string }> {
+  ): Promise<{filePath: string; filename: string}> {
     const response = await axios({
       method: 'get',
       url,

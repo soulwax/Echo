@@ -11,10 +11,12 @@ export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('queue')
     .setDescription('show the current queue')
-    .addIntegerOption(option => option
-      .setName('page')
-      .setDescription('page of queue to show [default: 1]')
-      .setRequired(false));
+    .addIntegerOption(option =>
+      option
+        .setName('page')
+        .setDescription('page of queue to show [default: 1]')
+        .setRequired(false),
+    );
 
   private readonly playerManager: PlayerManager;
 
@@ -23,9 +25,12 @@ export default class implements Command {
   }
 
   public async execute(interaction: ChatInputCommandInteraction) {
-    const player = this.playerManager.get(interaction.guild!.id);
+    const player = this.playerManager.get(interaction.guild.id);
 
-    const embed = buildQueueEmbed(player, interaction.options.getInteger('page') ?? 1);
+    const embed = buildQueueEmbed(
+      player,
+      interaction.options.getInteger('page') ?? 1,
+    );
 
     await interaction.reply({embeds: [embed]});
   }

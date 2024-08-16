@@ -1,9 +1,9 @@
 import ffmpeg from 'fluent-ffmpeg';
-import { inject, injectable } from 'inversify';
+import {inject, injectable} from 'inversify';
 import * as spotifyURI from 'spotify-uri';
-import { TYPES } from '../types.js';
-import { MediaSource, QueuedPlaylist, SongMetadata } from './player.js';
-import SpotifyAPI, { SpotifyTrack } from './spotify-api.js';
+import {TYPES} from '../types.js';
+import {MediaSource, QueuedPlaylist, SongMetadata} from './player.js';
+import SpotifyAPI, {SpotifyTrack} from './spotify-api.js';
 import YoutubeAPI from './youtube-api.js';
 
 @injectable()
@@ -66,7 +66,7 @@ export default class {
           playlistLimit,
         );
         return this.spotifyToYouTube(
-          tracks as SpotifyTrack[],
+          tracks,
           shouldSplitChapters,
           playlist,
         );
@@ -138,7 +138,7 @@ export default class {
           for (const v of result.value) {
             accum.push({
               ...v,
-              ...(playlist ? { playlist } : {}),
+              ...(playlist ? {playlist} : {}),
             });
           }
         } else {

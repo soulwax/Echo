@@ -1,8 +1,8 @@
-import { VoiceChannel, Snowflake } from 'discord.js';
-import { Readable } from 'stream';
+import {VoiceChannel, Snowflake} from 'discord.js';
+import {Readable} from 'stream';
 import hasha from 'hasha';
-import ytdl, { videoFormat } from '@distube/ytdl-core';
-import { WriteStream } from 'fs-capacitor';
+import ytdl, {videoFormat} from '@distube/ytdl-core';
+import {WriteStream} from 'fs-capacitor';
 import ffmpeg from 'fluent-ffmpeg';
 import shuffle from 'array-shuffle';
 import {
@@ -20,8 +20,8 @@ import {
 } from '@discordjs/voice';
 import FileCacheProvider from './file-cache.js';
 import debug from '../utils/debug.js';
-import { getGuildSettings } from '../utils/get-guild-settings.js';
-import { buildPlayingMessageEmbed } from '../utils/build-embed.js';
+import {getGuildSettings} from '../utils/get-guild-settings.js';
+import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 
 export enum MediaSource {
   Youtube,
@@ -59,7 +59,7 @@ export interface PlayerEvents {
   statusChange: (oldStatus: STATUS, newStatus: STATUS) => void;
 }
 
-type YTDLVideoFormat = videoFormat & { loudnessDb?: number };
+type YTDLVideoFormat = videoFormat & {loudnessDb?: number};
 
 export const DEFAULT_VOLUME = 100;
 
@@ -92,7 +92,7 @@ export default class {
   async connect(channel: VoiceChannel): Promise<void> {
     // Always get freshest default volume setting value
     const settings = await getGuildSettings(this.guildId);
-    const { defaultVolume = DEFAULT_VOLUME } = settings;
+    const {defaultVolume = DEFAULT_VOLUME} = settings;
     this.defaultVolume = defaultVolume;
 
     this.voiceConnection = joinVoiceChannel({
@@ -206,8 +206,8 @@ export default class {
 
     // Resume from paused state
     if (
-      this.status === STATUS.PAUSED &&
-      currentSong.url === this.nowPlaying?.url
+      this.status === STATUS.PAUSED
+      && currentSong.url === this.nowPlaying?.url
     ) {
       if (this.audioPlayer) {
         this.audioPlayer.unpause();
@@ -258,7 +258,7 @@ export default class {
     } catch (error: unknown) {
       await this.forward(1);
 
-      if ((error as { statusCode: number }).statusCode === 410 && currentSong) {
+      if ((error as {statusCode: number}).statusCode === 410 && currentSong) {
         const channelId = currentSong.addedInChannelId;
 
         if (channelId) {
@@ -297,7 +297,7 @@ export default class {
 
         const settings = await getGuildSettings(this.guildId);
 
-        const { secondsToWaitAfterQueueEmpties } = settings;
+        const {secondsToWaitAfterQueueEmpties} = settings;
         if (secondsToWaitAfterQueueEmpties !== 0) {
           this.disconnectTimer = setTimeout(() => {
             // Make sure we are not accidentally playing
@@ -362,7 +362,7 @@ export default class {
     return this.queue.slice(this.queuePosition + 1);
   }
 
-  add(song: QueuedSong, { immediate = false } = {}): void {
+  add(song: QueuedSong, {immediate = false} = {}): void {
     if (song.playlist || !immediate) {
       // Add to end of queue
       this.queue.push(song);
@@ -456,7 +456,7 @@ export default class {
 
   private async getStream(
     song: QueuedSong,
-    options: { seek?: number; to?: number } = {},
+    options: {seek?: number; to?: number} = {},
   ): Promise<Readable> {
     if (this.status === STATUS.PLAYING) {
       this.audioPlayer?.stop();
@@ -465,7 +465,7 @@ export default class {
     }
 
     if (song.source === MediaSource.HLS) {
-      return this.createReadStream({ url: song.url, cacheKey: song.url });
+      return this.createReadStream({url: song.url, cacheKey: song.url});
     }
 
     let ffmpegInput: string | null;
@@ -485,10 +485,10 @@ export default class {
       const formats = info.formats as YTDLVideoFormat[];
 
       const filter = (format: ytdl.videoFormat): boolean =>
-        format.codecs === 'opus' &&
-        format.container === 'webm' &&
-        format.audioSampleRate !== undefined &&
-        parseInt(format.audioSampleRate, 10) === 48000;
+        format.codecs === 'opus'
+        && format.container === 'webm'
+        && format.audioSampleRate !== undefined
+        && parseInt(format.audioSampleRate, 10) === 48000;
 
       format = formats.find(filter);
 
@@ -498,8 +498,8 @@ export default class {
         if (formats[0].isLive) {
           formats = formats.sort(
             (a, b) =>
-              (b as unknown as { audioBitrate: number }).audioBitrate -
-              (a as unknown as { audioBitrate: number }).audioBitrate,
+              (b as unknown as {audioBitrate: number}).audioBitrate
+              - (a as unknown as {audioBitrate: number}).audioBitrate,
           ); // Bad typings
 
           return formats.find(format =>
@@ -526,7 +526,7 @@ export default class {
 
         if (!format) {
           // If still no format is found, throw
-          throw new Error("Can't find suitable format.");
+          throw new Error('Can\'t find suitable format.');
         }
       }
 
@@ -536,11 +536,11 @@ export default class {
 
       // Don't cache livestreams or long videos
       const MAX_CACHE_LENGTH_SECONDS = 30 * 60; // 30 minutes
-      shouldCacheVideo =
-        !info.player_response.videoDetails.isLiveContent &&
-        parseInt(info.videoDetails.lengthSeconds, 10) <
-          MAX_CACHE_LENGTH_SECONDS &&
-        !options.seek;
+      shouldCacheVideo
+        = !info.player_response.videoDetails.isLiveContent
+        && parseInt(info.videoDetails.lengthSeconds, 10)
+          < MAX_CACHE_LENGTH_SECONDS
+        && !options.seek;
 
       debug(shouldCacheVideo ? 'Caching video' : 'Not caching video');
 
@@ -632,9 +632,9 @@ export default class {
   ): Promise<void> {
     // Automatically advance queued song at end
     if (
-      this.loopCurrentSong &&
-      newState.status === AudioPlayerStatus.Idle &&
-      this.status === STATUS.PLAYING
+      this.loopCurrentSong
+      && newState.status === AudioPlayerStatus.Idle
+      && this.status === STATUS.PLAYING
     ) {
       await this.seek(0);
       return;
@@ -642,9 +642,9 @@ export default class {
 
     // Automatically re-add current song to queue
     if (
-      this.loopCurrentQueue &&
-      newState.status === AudioPlayerStatus.Idle &&
-      this.status === STATUS.PLAYING
+      this.loopCurrentQueue
+      && newState.status === AudioPlayerStatus.Idle
+      && this.status === STATUS.PLAYING
     ) {
       const currentSong = this.getCurrent();
 
@@ -656,13 +656,13 @@ export default class {
     }
 
     if (
-      newState.status === AudioPlayerStatus.Idle &&
-      this.status === STATUS.PLAYING
+      newState.status === AudioPlayerStatus.Idle
+      && this.status === STATUS.PLAYING
     ) {
       await this.forward(1);
       // Auto announce the next song if configured to
       const settings = await getGuildSettings(this.guildId);
-      const { autoAnnounceNextSong } = settings;
+      const {autoAnnounceNextSong} = settings;
       if (autoAnnounceNextSong && this.currentChannel) {
         await this.currentChannel.send({
           embeds: this.getCurrent() ? [buildPlayingMessageEmbed(this)] : [],
@@ -706,7 +706,7 @@ export default class {
           }
         })
         .on('start', (command: string) => {
-          debug(`Spawned ffmpeg with ${command as string}`);
+          debug(`Spawned ffmpeg with ${command}`);
         });
 
       stream.pipe(capacitor);

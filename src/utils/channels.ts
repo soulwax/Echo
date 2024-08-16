@@ -72,7 +72,7 @@ export const getMostPopularVoiceChannel = (
 
       return popular;
     },
-    { n: -1, channel: null },
+    {n: -1, channel: null},
   );
 
   if (popularChannel.channel) {

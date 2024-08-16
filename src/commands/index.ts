@@ -10,13 +10,13 @@ import {
 
 export default interface Command {
   readonly slashCommand: Partial<
-    SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder
+  SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder
   > &
-    Pick<SlashCommandBuilder, 'toJSON'>;
+  Pick<SlashCommandBuilder, 'toJSON'>;
   readonly handledButtonIds?: readonly string[];
   readonly requiresVC?:
-    | boolean
-    | ((interaction: ChatInputCommandInteraction) => boolean);
+  | boolean
+  | ((interaction: ChatInputCommandInteraction) => boolean);
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
   handleButtonInteraction?: (interaction: ButtonInteraction) => Promise<void>;
   handleAutocompleteInteraction?: (

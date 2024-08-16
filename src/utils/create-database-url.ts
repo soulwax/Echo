@@ -1,4 +1,4 @@
-import { join } from 'path';
+import {join} from 'path';
 
 export const createDatabasePath = (directory: string) =>
   join(directory, 'db.sqlite');
