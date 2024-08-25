@@ -1,16 +1,16 @@
-import {promises as fs, createWriteStream} from 'fs';
-import path from 'path';
-import {inject, injectable} from 'inversify';
-import {TYPES} from '../types.js';
-import Config from './config.js';
-import PQueue from 'p-queue';
-import debug from '../utils/debug.js';
-import {prisma} from '../utils/db.js';
-import {FileCache} from '@prisma/client';
+import { FileCache } from "@prisma/client";
+import { createWriteStream, promises as fs } from "fs";
+import { inject, injectable } from "inversify";
+import PQueue from "p-queue";
+import path from "path";
+import { TYPES } from "../types.js";
+import { prisma } from "../utils/db.js";
+import debug from "../utils/debug.js";
+import Config from "./config.js";
 
 @injectable()
 export default class FileCacheProvider {
-  private static readonly evictionQueue = new PQueue({concurrency: 1});
+  private static readonly evictionQueue = new PQueue({ concurrency: 1 });
   private readonly config: Config;
 
   constructor(@inject(TYPES.Config) config: Config) {
@@ -66,12 +66,12 @@ export default class FileCacheProvider {
    * @param hash lookup key
    */
   createWriteStream(hash: string) {
-    const tmpPath = path.join(this.config.CACHE_DIR, 'tmp', hash);
+    const tmpPath = path.join(this.config.CACHE_DIR, "tmp", hash);
     const finalPath = path.join(this.config.CACHE_DIR, hash);
 
     const stream = createWriteStream(tmpPath);
 
-    stream.on('close', async () => {
+    stream.on("close", async () => {
       // Only move if size is non-zero (may have errored out)
       const stats = await fs.stat(tmpPath);
 
@@ -110,7 +110,7 @@ export default class FileCacheProvider {
   }
 
   private async evictOldest() {
-    debug('Evicting oldest files...');
+    debug("Evicting oldest files...");
 
     let totalSizeBytes = await this.getDiskUsageInBytes();
     let numOfEvictedFiles = 0;
@@ -119,7 +119,7 @@ export default class FileCacheProvider {
     while (totalSizeBytes > this.config.CACHE_LIMIT_IN_BYTES) {
       const oldest = await prisma.fileCache.findFirst({
         orderBy: {
-          accessedAt: 'asc',
+          accessedAt: "asc",
         },
       });
 
@@ -142,7 +142,7 @@ export default class FileCacheProvider {
       debug(`${numOfEvictedFiles} files have been evicted`);
     } else {
       debug(
-        `No files needed to be evicted. Total size of the cache is currently ${totalSizeBytes} bytes, and the cache limit is ${this.config.CACHE_LIMIT_IN_BYTES} bytes.`,
+        `No files needed to be evicted. Total size of the cache is currently ${totalSizeBytes} bytes, and the cache limit is ${this.config.CACHE_LIMIT_IN_BYTES} bytes.`
       );
     }
   }
@@ -159,7 +159,7 @@ export default class FileCacheProvider {
 
         if (!model) {
           debug(
-            `${dirent.name} was present on disk but was not in the database. Removing from disk.`,
+            `${dirent.name} was present on disk but was not in the database. Removing from disk.`
           );
           await fs.unlink(path.join(this.config.CACHE_DIR, dirent.name));
         }
@@ -174,7 +174,7 @@ export default class FileCacheProvider {
         await fs.access(filePath);
       } catch {
         debug(
-          `${model.hash} was present in database but was not on disk. Removing from database.`,
+          `${model.hash} was present in database but was not on disk. Removing from database.`
         );
         await prisma.fileCache.delete({
           where: {
@@ -225,7 +225,7 @@ export default class FileCacheProvider {
       models = await prisma.fileCache.findMany({
         where,
         orderBy: {
-          createdAt: 'asc',
+          createdAt: "asc",
         },
         take: limit,
       });
@@ -245,10 +245,10 @@ export default class FileCacheProvider {
 
             if (models.length === 0) {
               // Must return value here for types to be inferred correctly
-              return {done: true, value: null as unknown as FileCache};
+              return { done: true, value: null as unknown as FileCache };
             }
 
-            return {value: models.shift()!, done: false};
+            return { value: models.shift()!, done: false };
           },
         };
       },

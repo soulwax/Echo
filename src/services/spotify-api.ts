@@ -1,11 +1,11 @@
-import shuffle from 'array-shuffle';
-import {inject, injectable} from 'inversify';
-import * as spotifyURI from 'spotify-uri';
-import SpotifyWebApi from 'spotify-web-api-node';
-import {URL} from 'url';
-import {TYPES} from '../types.js';
-import {QueuedPlaylist} from './player.js';
-import ThirdParty from './third-party.js';
+import shuffle from "array-shuffle";
+import { inject, injectable } from "inversify";
+import * as spotifyURI from "spotify-uri";
+import SpotifyWebApi from "spotify-web-api-node";
+import { URL } from "url";
+import { TYPES } from "../types.js";
+import { QueuedPlaylist } from "./player.js";
+import ThirdParty from "./third-party.js";
 
 export interface SpotifyTrack {
   name: string;
@@ -14,6 +14,21 @@ export interface SpotifyTrack {
 
 @injectable()
 export default class SpotifyAPI {
+  getAlbum(
+    url: string,
+    playlistLimit: number
+  ): [any, any] | PromiseLike<[any, any]> {
+    throw new Error("Method not implemented.");
+  }
+
+  getTrack(url: string) {
+    throw new Error("Method not implemented.");
+  }
+
+  getArtist(url: string, playlistLimit: number) {
+    throw new Error("Method not implemented.");
+  }
+
   private readonly spotify: SpotifyWebApi;
 
   constructor(@inject(TYPES.ThirdParty) thirdParty: ThirdParty) {
@@ -24,18 +39,18 @@ export default class SpotifyAPI {
 
   async getPlaylist(
     url: string,
-    playlistLimit: number,
+    playlistLimit: number
   ): Promise<[SpotifyTrack[], QueuedPlaylist]> {
     try {
       const uri = spotifyURI.parse(url) as spotifyURI.Playlist;
-      let [{body: playlistResponse}, {body: tracksResponse}]
-        = await Promise.all([
+      let [{ body: playlistResponse }, { body: tracksResponse }] =
+        await Promise.all([
           this.spotify.getPlaylist(uri.id),
-          this.spotify.getPlaylistTracks(uri.id, {limit: 50}),
+          this.spotify.getPlaylistTracks(uri.id, { limit: 50 }),
         ]);
 
       const items: SpotifyApi.TrackObjectFull[] = tracksResponse.items
-        .map(playlistItem => playlistItem.track)
+        .map((playlistItem) => playlistItem.track)
         .filter((track): track is SpotifyApi.TrackObjectFull => track !== null);
 
       const playlist: QueuedPlaylist = {
@@ -45,25 +60,25 @@ export default class SpotifyAPI {
 
       while (tracksResponse.next) {
         const nextUrl = new URL(tracksResponse.next);
-        const limit = parseInt(nextUrl.searchParams.get('limit') ?? '50', 10);
-        const offset = parseInt(nextUrl.searchParams.get('offset') ?? '0', 10);
+        const limit = parseInt(nextUrl.searchParams.get("limit") ?? "50", 10);
+        const offset = parseInt(nextUrl.searchParams.get("offset") ?? "0", 10);
 
-        ({body: tracksResponse} = await this.spotify.getPlaylistTracks(
+        ({ body: tracksResponse } = await this.spotify.getPlaylistTracks(
           uri.id,
-          {limit, offset},
+          { limit, offset }
         ));
 
         items.push(
           ...tracksResponse.items
-            .map(playlistItem => playlistItem.track)
+            .map((playlistItem) => playlistItem.track)
             .filter(
-              (track): track is SpotifyApi.TrackObjectFull => track !== null,
-            ),
+              (track): track is SpotifyApi.TrackObjectFull => track !== null
+            )
         );
       }
 
       const tracks = this.limitTracks(items, playlistLimit).map(
-        this.toSpotifyTrack,
+        this.toSpotifyTrack
       );
 
       return [tracks, playlist];
@@ -77,13 +92,13 @@ export default class SpotifyAPI {
   private toSpotifyTrack(track: SpotifyApi.TrackObjectFull): SpotifyTrack {
     return {
       name: track.name,
-      artist: track.artists[0]?.name ?? 'Unknown Artist',
+      artist: track.artists[0]?.name ?? "Unknown Artist",
     };
   }
 
   private limitTracks(
     tracks: SpotifyApi.TrackObjectFull[],
-    limit: number,
+    limit: number
   ): SpotifyApi.TrackObjectFull[] {
     return tracks.length > limit ? shuffle(tracks).slice(0, limit) : tracks;
   }

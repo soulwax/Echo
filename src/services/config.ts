@@ -1,14 +1,14 @@
-import {ActivityType, PresenceStatusData} from 'discord.js';
-import dotenv from 'dotenv';
-import {injectable} from 'inversify';
-import path from 'path';
-import 'reflect-metadata';
-import {ConditionalKeys} from 'type-fest';
-import xbytes from 'xbytes';
+import { ActivityType, PresenceStatusData } from "discord.js";
+import dotenv from "dotenv";
+import { injectable } from "inversify";
+import path from "path";
+import "reflect-metadata";
+import { ConditionalKeys } from "type-fest";
+import xbytes from "xbytes";
 dotenv.config();
 
 export const DATA_DIR = path.resolve(
-  process.env.DATA_DIR ? process.env.DATA_DIR : './data',
+  process.env.DATA_DIR ? process.env.DATA_DIR : "./data"
 );
 
 const CONFIG_MAP = {
@@ -16,18 +16,18 @@ const CONFIG_MAP = {
   YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
   SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
   SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
-  REGISTER_COMMANDS_ON_BOT: process.env.REGISTER_COMMANDS_ON_BOT === 'true',
+  REGISTER_COMMANDS_ON_BOT: process.env.REGISTER_COMMANDS_ON_BOT === "true",
   DATA_DIR,
-  CACHE_DIR: path.join(DATA_DIR, 'cache'),
-  CACHE_LIMIT_IN_BYTES: xbytes.parseSize(process.env.CACHE_LIMIT ?? '2GB'),
-  BOT_STATUS: process.env.BOT_STATUS ?? 'online',
-  BOT_ACTIVITY_TYPE: process.env.BOT_ACTIVITY_TYPE ?? 'LISTENING',
-  BOT_ACTIVITY_URL: process.env.BOT_ACTIVITY_URL ?? '',
-  BOT_ACTIVITY: process.env.BOT_ACTIVITY ?? 'music',
-  ENABLE_SPONSORBLOCK: process.env.ENABLE_SPONSORBLOCK === 'true',
+  CACHE_DIR: path.join(DATA_DIR, "cache"),
+  CACHE_LIMIT_IN_BYTES: xbytes.parseSize(process.env.CACHE_LIMIT ?? "2GB"),
+  BOT_STATUS: process.env.BOT_STATUS ?? "online",
+  BOT_ACTIVITY_TYPE: process.env.BOT_ACTIVITY_TYPE ?? "LISTENING",
+  BOT_ACTIVITY_URL: process.env.BOT_ACTIVITY_URL ?? "",
+  BOT_ACTIVITY: process.env.BOT_ACTIVITY ?? "music",
+  ENABLE_SPONSORBLOCK: process.env.ENABLE_SPONSORBLOCK === "true",
   SPONSORBLOCK_TIMEOUT: process.env.ENABLE_SPONSORBLOCK ?? 5,
-  DOWNLOAD_URL: process.env.DOWNLOAD_URL ?? '',
-  DOWNLOAD_KEY: process.env.DOWNLOAD_KEY ?? '',
+  DOWNLOAD_URL: process.env.DOWNLOAD_URL ?? "",
+  DOWNLOAD_KEY: process.env.DOWNLOAD_KEY ?? "",
 } as const;
 
 const BOT_ACTIVITY_TYPE_MAP = {
@@ -58,14 +58,14 @@ export default class Config {
 
   constructor() {
     for (const [key, value] of Object.entries(CONFIG_MAP)) {
-      if (typeof value === 'undefined') {
+      if (typeof value === "undefined") {
         console.error(`Missing environment variable for ${key}`);
         process.exit(1);
       }
 
-      if (key === 'BOT_ACTIVITY_TYPE') {
-        this[key]
-          = BOT_ACTIVITY_TYPE_MAP[
+      if (key === "BOT_ACTIVITY_TYPE") {
+        this[key] =
+          BOT_ACTIVITY_TYPE_MAP[
             (
               value as string
             ).toUpperCase() as keyof typeof BOT_ACTIVITY_TYPE_MAP
@@ -73,12 +73,12 @@ export default class Config {
         continue;
       }
 
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         this[key as ConditionalKeys<typeof CONFIG_MAP, number>] = value;
-      } else if (typeof value === 'string') {
+      } else if (typeof value === "string") {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         (this as any)[key] = value.trim();
-      } else if (typeof value === 'boolean') {
+      } else if (typeof value === "boolean") {
         this[key as ConditionalKeys<typeof CONFIG_MAP, boolean>] = value;
       } else {
         throw new Error(`Unsupported type for ${key}`);

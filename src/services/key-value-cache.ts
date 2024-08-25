@@ -1,6 +1,6 @@
-import {injectable} from 'inversify';
-import {prisma} from '../utils/db.js';
-import debug from '../utils/debug.js';
+import { injectable } from "inversify";
+import { prisma } from "../utils/db.js";
+import debug from "../utils/debug.js";
 
 type Seconds = number;
 
@@ -19,12 +19,12 @@ export default class KeyValueCacheProvider {
     ...options: T
   ): Promise<F> {
     if (options.length === 0) {
-      throw new Error('Missing cache options');
+      throw new Error("Missing cache options");
     }
 
     const functionArgs = options.slice(0, options.length - 1);
 
-    const {key = JSON.stringify(functionArgs), expiresIn} = options[
+    const { key = JSON.stringify(functionArgs), expiresIn } = options[
       options.length - 1
     ] as Options;
 
