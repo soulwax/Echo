@@ -48,7 +48,7 @@
     "eslint-config-xo-typescript": "^0.44.0",
     "husky": "^4.3.8",
     "prettier": "^3.1.1",
-    "prisma": "^3.14.0",
+    "prisma": "^5.19.0",
     "release-it": "^14.11.8",
     "type-fest": "^2.12.0",
     "typescript": "^4.6.4"
@@ -76,7 +76,7 @@
     "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "1.0.d5f5a2f787e71",
     "@discordjs/voice": "0.11.0",
-    "@prisma/client": "^4.1.1",
+    "@prisma/client": "^5.19.0",
     "@types/libsodium-wrappers": "^0.7.9",
     "array-shuffle": "^3.0.0",
     "axios": "^1.6.3",
