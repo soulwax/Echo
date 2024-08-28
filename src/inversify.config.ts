@@ -1,48 +1,48 @@
-import {Client, GatewayIntentBits} from 'discord.js';
-import {Container} from 'inversify';
-import 'reflect-metadata';
-import Bot from './bot.js';
-import ConfigProvider from './services/config.js';
-import {TYPES} from './types.js';
+import { Client, GatewayIntentBits } from "discord.js";
+import { Container } from "inversify";
+import "reflect-metadata";
+import Bot from "./bot.js";
+import ConfigProvider from "./services/config.js";
+import { TYPES } from "./types.js";
 
 // Managers
-import PlayerManager from './managers/player.js';
+import PlayerManager from "./managers/player.js";
 
 // Services
-import AddQueryToQueue from './services/add-query-to-queue.js';
-import GetSongs from './services/get-songs.js';
-import SpotifyAPI from './services/spotify-api.js';
-import YoutubeAPI from './services/youtube-api.js';
+import AddQueryToQueue from "./services/add-query-to-queue.js";
+import GetSongs from "./services/get-songs.js";
+import SpotifyAPI from "./services/spotify-api.js";
+import YoutubeAPI from "./services/youtube-api.js";
 
 // Commands
-import Clear from './commands/clear.js';
-import Config from './commands/config.js';
-import Disconnect from './commands/disconnect.js';
-import Download from './commands/download.js';
-import Favorites from './commands/favorites.js';
-import ForwardSeek from './commands/fseek.js';
-import Command from './commands/index.js';
-import LoopQueue from './commands/loop-queue.js';
-import Loop from './commands/loop.js';
-import Move from './commands/move.js';
-import Next from './commands/next.js';
-import NowPlaying from './commands/now-playing.js';
-import Pause from './commands/pause.js';
-import Play from './commands/play.js';
-import QueueCommand from './commands/queue.js';
-import Remove from './commands/remove.js';
-import Replay from './commands/replay.js';
-import Resume from './commands/resume.js';
-import Seek from './commands/seek.js';
-import Shuffle from './commands/shuffle.js';
-import Skip from './commands/skip.js';
-import Stop from './commands/stop.js';
-import Unskip from './commands/unskip.js';
-import Volume from './commands/volume.js';
-import Youtube from './commands/youtube.js';
-import FileCacheProvider from './services/file-cache.js';
-import KeyValueCacheProvider from './services/key-value-cache.js';
-import ThirdParty from './services/third-party.js';
+import Clear from "./commands/clear.js";
+import Config from "./commands/config.js";
+import Disconnect from "./commands/disconnect.js";
+import Download from "./commands/download.js";
+import Favorites from "./commands/favorites.js";
+import ForwardSeek from "./commands/fseek.js";
+import Command from "./commands/index.js";
+import LoopQueue from "./commands/loop-queue.js";
+import Loop from "./commands/loop.js";
+import Move from "./commands/move.js";
+import Next from "./commands/next.js";
+import NowPlaying from "./commands/now-playing.js";
+import Pause from "./commands/pause.js";
+import Play from "./commands/play.js";
+import QueueCommand from "./commands/queue.js";
+import Remove from "./commands/remove.js";
+import Replay from "./commands/replay.js";
+import Resume from "./commands/resume.js";
+import Seek from "./commands/seek.js";
+import Shuffle from "./commands/shuffle.js";
+import Skip from "./commands/skip.js";
+import Stop from "./commands/stop.js";
+import Unskip from "./commands/unskip.js";
+import Volume from "./commands/volume.js";
+import Youtube from "./commands/youtube.js";
+import FileCacheProvider from "./services/file-cache.js";
+import KeyValueCacheProvider from "./services/key-value-cache.js";
+import ThirdParty from "./services/third-party.js";
 
 const container = new Container();
 
@@ -54,7 +54,7 @@ intents.push(GatewayIntentBits.GuildVoiceStates); // To listen for voice state c
 
 // Bot
 container.bind<Bot>(TYPES.Bot).to(Bot).inSingletonScope();
-container.bind<Client>(TYPES.Client).toConstantValue(new Client({intents}));
+container.bind<Client>(TYPES.Client).toConstantValue(new Client({ intents }));
 
 // Managers
 container
@@ -106,7 +106,7 @@ container
   Unskip,
   Volume,
   Youtube,
-].forEach(command => {
+].forEach((command) => {
   container.bind<Command>(TYPES.Command).to(command).inSingletonScope();
 });
 

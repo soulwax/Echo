@@ -1,3 +1,4 @@
+// File: src/services/config.ts
 import { ActivityType, PresenceStatusData } from "discord.js";
 import dotenv from "dotenv";
 import { injectable } from "inversify";
