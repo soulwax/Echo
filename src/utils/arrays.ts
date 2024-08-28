@@ -1,5 +1,5 @@
-export const chunk = <T>(arr: T[], len: number): T[][] => {
-  const chunks: T[][] = []; // Explicitly typing the chunks array
+export const chunk = <T>(arr: T[], len: number) => {
+  const chunks = [];
 
   let i = 0;
   while (i < arr.length) {
@@ -7,4 +7,4 @@ export const chunk = <T>(arr: T[], len: number): T[][] => {
   }
 
   return chunks;
-}
+};
