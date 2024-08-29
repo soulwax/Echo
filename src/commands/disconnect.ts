@@ -1,8 +1,8 @@
-import {SlashCommandBuilder} from '@discordjs/builders';
-import {ChatInputCommandInteraction} from 'discord.js';
-import {inject, injectable} from 'inversify';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { inject, injectable } from 'inversify';
 import PlayerManager from '../managers/player.js';
-import {TYPES} from '../types.js';
+import { TYPES } from '../types.js';
 import Command from './index.js';
 
 @injectable()
@@ -20,14 +20,19 @@ export default class implements Command {
   }
 
   public async execute(interaction: ChatInputCommandInteraction) {
-    const player = this.playerManager.get(interaction.guild.id);
+    try {
+      const guild: string = interaction.guild ? interaction.guild.id : '';
+      const player = this.playerManager.get(guild);
 
-    if (!player.voiceConnection) {
-      throw new Error('not connected');
+      if (!player.voiceConnection) {
+        throw new Error('not connected');
+      }
+
+      player.disconnect();
+
+      await interaction.reply('Disconnected Echo, Tschüss!');
+    } catch (e) {
+      await interaction.reply('Echo is not connected to a voice channel');
     }
-
-    player.disconnect();
-
-    await interaction.reply('Disconnected Echo, Tschüss!');
   }
 }

@@ -57,30 +57,6 @@
     "type-fest": "^4.24.0",
     "typescript": "^4.6.4"
   },
-  "eslintConfig": {
-    "extends": [
-      "xo",
-      "xo-typescript/space"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    },
-    "plugins": [
-      "import"
-    ],
-    "rules": {
-      "new-cap": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars-experimental": "error",
-      "@typescript-eslint/prefer-readonly-parameter-types": "off",
-      "@typescript-eslint/no-implicit-any-catch": "off",
-      "import/extensions": [
-        "error",
-        "ignorePackages"
-      ]
-    }
-  },
   "husky": {
     "hooks": {
       "pre-commit": "npm test"

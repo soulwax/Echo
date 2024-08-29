@@ -1,0 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "ECHO",
+      "script": "npm",
+      "args": "run dev",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}
