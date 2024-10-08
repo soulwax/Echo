@@ -3380,6 +3380,11 @@ make-dir@^3.0.0, make-dir@^3.1.0:
   dependencies:
     semver "^6.0.0"
 
+make-dir@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-5.0.0.tgz#39b41251426eb8cff94de63bbef62e66ccbb538f"
+  integrity sha512-G0yBotnlWVonPClw+tq+xi4K7DZC9n96HjGTBDdHkstAVsDkfZhi1sTvZypXLpyQTbISBkDtK0E5XlUqDsShQg==
+
 merge-stream@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/merge-stream/-/merge-stream-2.0.0.tgz#52823629a14dd00c9770fb6ad47dc6310f2c1f60"
