@@ -1,0 +1,12 @@
+{
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/keep-a-changelog": {
+      "addUnreleased": true,
+      "addVersionUrl": true,
+      "filename": "CHANGELOG.md"
+    }
+  }
+}
